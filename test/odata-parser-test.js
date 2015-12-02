@@ -16,7 +16,7 @@
 
 var superagent = require('superagent')
 var expect = require('expect.js')
-var parser = require("../lib/odata-parser").parser;
+var parser = require("../dist/odata-parser").parser;
 
 describe('ODataParser Tests', function (done) {
 
