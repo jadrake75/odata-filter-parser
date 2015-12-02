@@ -1,0 +1,4 @@
+dist
+node_modules
+/.ntvs_analysis.dat
+.idea

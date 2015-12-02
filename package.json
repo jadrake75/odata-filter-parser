@@ -1,0 +1,31 @@
+{
+  "name": "odata-filter-parser",
+  "version": "0.1.1",
+  "description": "Library for parsing and building OData filter strings",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stamp-web/odata-filter-parser.git"
+  },
+  "keywords": [
+    "odata"
+  ],
+  "author": "Jason Drake <jadrake75@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/stamp-web/odata-filter-parser/issues"
+  },
+  "homepage": "https://github.com/stamp-web/odata-filter-parser#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "gulp": "^3.9.0",
+    "gulp-bump": "^1.0.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-uglify": "^1.5.1",
+    "superagent": "^0.18.2"
+  }
+}
