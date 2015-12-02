@@ -16,7 +16,7 @@
 
 var superagent = require('superagent')
 var expect = require('expect.js')
-var parser = require("../dist/odata-parser").parser;
+var parser = require("../src/odata-parser").parser;
 
 describe('ODataParser Tests', function (done) {
 
@@ -152,5 +152,49 @@ describe('ODataParser Tests', function (done) {
             expect( obj.type).to.be.eql('like');
         });
 
+    });
+
+    describe('OData flatten tests', function() {
+
+        it('Flatten single statement', function () {
+            var s = {
+                left: "name",
+                type: "eq",
+                right: "'Bob'"
+            };
+            var obj = parser.flatten(s);
+            expect(obj.length).to.be.eql(1);
+            expect(obj[0].left).to.be.eql("name");
+            expect(obj[0].type).to.be.eql("eq");
+            expect(obj[0].right).to.be.eql("'Bob'");
+        });
+
+        it('Flatten two and statements', function () {
+            var s = {
+                left: {
+                    left: "name",
+                    type: "eq",
+                    right: "'Bob'"
+                },
+                type: "and",
+                right: {
+                    left: "lastname",
+                    type: "eq",
+                    right: "'someone'"
+                }
+            };
+
+            var obj = parser.flatten(s);
+            console.log(obj);
+            expect(obj.length).to.be.eql(2);
+            var left = obj[0];
+            expect(left.left).to.be.eql("name");
+            expect(left.type).to.be.eql("eq");
+            expect(left.right).to.be.eql("'Bob'");
+            var right = obj[1];
+            expect(right.left).to.be.eql("lastname");
+            expect(right.type).to.be.eql("eq");
+            expect(right.right).to.be.eql("'someone'");
+        });
     });
 });

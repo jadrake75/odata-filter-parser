@@ -22,8 +22,33 @@ var Operator = {
     LESS_THAN: 'lt',
     GREATER_THAN_EQUAL: 'ge',
     LESS_THAN_EQUAL: 'le',
-    NOT_EQUAL: 'ne'
-}
+    NOT_EQUAL: 'ne',
+    IS_NULL: 'is null',
+
+    /**
+     * Whether a defined operation is unary or binary.  Will return true
+     * if the operation only supports a subject with no value.
+     *
+     * @param {String} op the operation to check.
+     * @return {Boolean} whether the operation is an unary operation.
+     */
+    isUnary: function (op) {
+        var value = false;
+        if (op === Operator.IS_NULL) {
+            value = true;
+        }
+        return value;
+    },
+    /**
+     * Whether a defined operation is a logical operator or not.
+     *
+     * @param {String} op the operation to check.
+     * @return {Boolean} whether the operation is a logical operation.
+     */
+    isLogical: function (op) {
+        return (op === Operator.AND || op === Operator.OR);
+    }
+};
 
 var ODataParser = function() {
 
@@ -51,6 +76,19 @@ var ODataParser = function() {
     }
 
     return {
+        flatten: function(predicate, result) {
+            if( !result ) {
+                result = [];
+            }
+            if( Operator.isLogical(predicate.type) ) {
+                this.flatten( predicate.left, result);
+                this.flatten( predicate.right, result);
+            } else {
+                result.push(predicate);
+            }
+            return result;
+        },
+
         parse: function(filterStr) {
             var self = this;
             if( !filterStr ) {
