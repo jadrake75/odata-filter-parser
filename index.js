@@ -14,10 +14,8 @@
  limitations under the License.
  */
 
-module.exports = require('./dist/odata-parser');
 module.exports = {
-    Predicate: require('./dist/predicate'),
+    Predicate: require('./dist/odata-parser').Predicate,
     Operators: require('./dist/odata-parser').Operators,
     Parser: require('./dist/odata-parser').Parser
-
 }
