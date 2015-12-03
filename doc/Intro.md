@@ -44,7 +44,7 @@ var odataFilter = require('odata-filter-parser');
 Or if only one of the objects is needed, you can access it directly:
 
 ```
-var parser = require('odata-filter-parser').parser;
+var parser = require('odata-filter-parser').Parser;
 ```
 
 
