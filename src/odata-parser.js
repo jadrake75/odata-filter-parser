@@ -51,6 +51,113 @@ var Operators = {
     }
 };
 
+var Predicate = function (config) {
+    if (!config) {
+        config = {};
+    }
+    this.subject = config.subject;
+    this.value = config.value;
+    this.operator = (config.operator) ? config.operator : Operators.EQUALS;
+    return this;
+};
+
+Predicate.concat = function (operator, p) {
+    if (arguments.length < 3) {
+        throw {
+            key: 'INSUFFICIENT_PREDICATES',
+            msg: 'At least two predicates are required'
+        };
+    } else if (!operator || !Operators.isLogical(operator)) {
+        throw {
+            key: 'INVALID_LOGICAL',
+            msg: 'The operator is not representative of a logical operator.'
+        };
+    }
+    var result;
+    var len = arguments.length;
+    result = new Predicate({
+        subject: p,
+        operator: operator
+    });
+    if (len === 3) {
+        result.value = arguments[len - 1];
+    } else {
+        var a = [];
+        a.push(operator);
+        for( var i = 2; i < len; i++ ) {
+            a.push(arguments[i]);
+        }
+        result.value = Predicate.concat.apply(null, a);
+    }
+    return result;
+};
+
+Predicate.prototype.flatten = function(result) {
+    if( !result ) {
+        result = [];
+    }
+    if( Operators.isLogical(this.operator) ) {
+        result = result.concat(this.subject.flatten());
+        result = result.concat(this.value.flatten());
+    } else {
+        result.push(this);
+    }
+    return result;
+};
+
+/**
+ * Will serialie the predicate to an ODATA compliant serialized string.
+ *
+ * @return {String} The compliant ODATA query string
+ */
+Predicate.prototype.serialize = function() {
+    var retValue = '';
+    if (this.operator) {
+        if (this.subject === undefined || this.subject === null) {
+            throw {
+                key: 'INVALID_SUBJECT',
+                msg: 'The subject is required and is not specified.'
+            };
+        }
+        if (Operators.isLogical(this.operator) && (!(this.subject instanceof Predicate ||
+            this.value instanceof Predicate) || (this.subject instanceof Predicate && this.value === undefined))) {
+            throw {
+                key: 'INVALID_LOGICAL',
+                msg: 'The predicate does not represent a valid logical expression.'
+            };
+        }
+        retValue = '(' + ((this.subject instanceof Predicate) ? this.subject.serialize() : this.subject) + ' ' + this.operator;
+        if (!Operators.isUnary(this.operator)) {
+            if (this.value === undefined || this.value === null) {
+                throw {
+                    key: 'INVALID_VALUE',
+                    msg: 'The value was required but was not defined.'
+                };
+            }
+            retValue += ' ';
+            var val = typeof this.value;
+            if (val === 'string') {
+                retValue += '\'' + this.value + '\'';
+            } else if (val === 'number' || val === 'boolean') {
+                retValue += this.value;
+            } else if (this.value instanceof Predicate) {
+                retValue += this.value.serialize();
+            } else if (this.value instanceof Date) {
+                retValue += 'datetimeoffset\'' + this.value.toISOString() + '\'';
+            } else {
+                throw {
+                    key: 'UNKNOWN_TYPE',
+                    msg: 'Unsupported value type: ' + (typeof this.value),
+                    source: this.value
+                };
+            }
+
+        }
+        retValue += ')';
+    }
+    return retValue;
+};
+
 var ODataParser = function() {
 
     "use strict";
@@ -64,9 +171,9 @@ var ODataParser = function() {
         contains: /^contains[(](.*),'(.*)'[)]/
     };
 
-    function buildLike(match,key) {
+    function buildLike(match, key) {
         var right = (key === 'startsWith') ? match[2] + '*' : (key === 'endsWith') ? '*' + match[2] : '*' + match[2] + '*';
-        if( match[0].charAt(match[0].lastIndexOf(')')-1) === "\'") {
+        if( match[0].charAt(match[0].lastIndexOf(')') - 1) === "\'") {
             right = "\'" + right + "\'";
         }
         return {
@@ -112,19 +219,18 @@ var ODataParser = function() {
                     case REGEX.startsWith:
                     case REGEX.endsWith:
                     case REGEX.contains:
-                        obj = buildLike(match,key);
+                        obj = buildLike(match, key);
                         break;
                 }
                 found = true;
             }
-        };
+        }
         return obj;
     }
 
     return {
         parse: function(filterStr) {
-            var self = this;
-            if( !filterStr ) {
+            if( !filterStr || filterStr === '') {
                 return null;
             }
             var filter = filterStr.trim();
@@ -137,107 +243,7 @@ var ODataParser = function() {
     };
 }();
 
-var Predicate = function (config) {
-    if (!config) {
-        config = {};
-    }
-    this.subject = config.subject;
-    this.value = config.value;
-    this.operator = (config.operator) ? config.operator : Operators.EQUALS;
-    return this;
-};
 
-Predicate.concat = function (operator, p) {
-    if (arguments.length < 3) {
-        throw {
-            key: 'INSUFFICIENT_PREDICATES',
-            msg: 'At least two predicates are required'
-        };
-    } else if (!operator || !Operators.isLogical(operator)) {
-        throw {
-            key: 'INVALID_LOGICAL',
-            msg: 'The operator is not representative of a logical operator.'
-        }
-    }
-    var result;
-    var len = arguments.length;
-    result = new Predicate({
-        subject: p,
-        operator: operator
-    });
-    if (len === 3) {
-        result.value = arguments[len - 1];
-    } else {
-        result.value = Predicate.concat(operator, arguments.slice(2, len));
-    }
-    return result;
-};
-
-Predicate.prototype.flatten = function(result) {
-    if( !result ) {
-        result = [];
-    }
-    if( Operators.isLogical(this.operator) ) {
-        result = result.concat(this.subject.flatten());
-        result = result.concat(this.value.flatten());
-    } else {
-        result.push(this);
-    }
-    return result;
-};
-
-/**
- * Will serialie the predicate to an ODATA compliant serialized string.
- *
- * @return {String} The compliant ODATA query string
- */
-Predicate.prototype.serialize = function() {
-    var retValue = '';
-    if (this.operator) {
-        if (this.subject === undefined) {
-            throw {
-                key: 'INVALID_SUBJECT',
-                msg: 'The subject is required and is not specified.'
-            };
-        }
-        if (Operators.isLogical(this.operator) && (!(this.subject instanceof Predicate ||
-            this.value instanceof Predicate) || this.subject instanceof Predicate && this.value === undefined)) {
-            throw {
-                key: 'INVALID_LOGICAL',
-                msg: 'The predicate does not represent a valid logical expression.'
-            };
-        }
-        retValue = '(' + ((this.subject instanceof Predicate) ? this.subject.serialize() : this.subject) + ' ' + this.operator;
-        if (!Operators.isUnary(this.operator)) {
-            if (this.value === undefined) {
-                throw {
-                    key: 'INVALID_VALUE',
-                    msg: 'The value was required but was not defined.'
-                };
-            }
-            retValue += ' ';
-            var val = typeof this.value;
-            if (val === 'string') {
-                retValue += '\'' + this.value + '\'';
-            } else if (val === 'number' || val === 'boolean') {
-                retValue += this.value;
-            } else if (this.value instanceof Predicate) {
-                retValue += this.value.serialize();
-            } else if (this.value instanceof Date) {
-                retValue += 'datetimeoffset\'' + this.value.toISOString() + '\'';
-            } else {
-                throw {
-                    key: 'UNKNOWN_TYPE',
-                    msg: 'Unsupported value type: ' + (typeof this.value),
-                    source: this.value
-                };
-            }
-
-        }
-        retValue += ')';
-    }
-    return retValue;
-}
 
 module.exports = {
     Parser: ODataParser,

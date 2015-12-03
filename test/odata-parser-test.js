@@ -22,6 +22,14 @@ describe('ODataParser Tests', function (done) {
 
     describe('OData parsing tests', function () {
 
+        it('Null string is not parsed', function() {
+            expect(parser.parse(null)).to.be(null);
+        });
+
+        it('Empty string is not parsed', function() {
+            expect(parser.parse('')).to.be(null);
+        });
+
         it('Simple binary expression test', function () {
             var s = "name eq 'test'";
             var obj = parser.parse(s);
