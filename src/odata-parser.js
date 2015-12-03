@@ -14,16 +14,17 @@
  limitations under the License.
  */
 
-var Operator = {
+var Operators = {
     EQUALS: 'eq',
     AND: 'and',
     OR: 'or',
     GREATER_THAN: 'gt',
-    LESS_THAN: 'lt',
     GREATER_THAN_EQUAL: 'ge',
+    LESS_THAN: 'lt',
     LESS_THAN_EQUAL: 'le',
-    NOT_EQUAL: 'ne',
+    LIKE: 'like',
     IS_NULL: 'is null',
+    NOT_EQUAL: 'ne',
 
     /**
      * Whether a defined operation is unary or binary.  Will return true
@@ -34,19 +35,19 @@ var Operator = {
      */
     isUnary: function (op) {
         var value = false;
-        if (op === Operator.IS_NULL) {
+        if (op === Operators.IS_NULL) {
             value = true;
         }
         return value;
     },
     /**
-     * Whether a defined operation is a logical operator or not.
+     * Whether a defined operation is a logical operators or not.
      *
      * @param {String} op the operation to check.
      * @return {Boolean} whether the operation is a logical operation.
      */
     isLogical: function (op) {
-        return (op === Operator.AND || op === Operator.OR);
+        return (op === Operators.AND || op === Operators.OR);
     }
 };
 
@@ -69,26 +70,58 @@ var ODataParser = function() {
             right = "\'" + right + "\'";
         }
         return {
-            left: match[1],
-            type: 'like',
-            right: right
+            subject: match[1],
+            operator: Operators.LIKE,
+            value: right
         };
     }
 
-    return {
-        flatten: function(predicate, result) {
-            if( !result ) {
-                result = [];
+    function parseFragment(filter) {
+        var found = false;
+        var obj = null;
+        for (var key in REGEX ) {
+            var regex = REGEX[key];
+            if( found ) {
+                break;
             }
-            if( Operator.isLogical(predicate.type) ) {
-                this.flatten( predicate.left, result);
-                this.flatten( predicate.right, result);
-            } else {
-                result.push(predicate);
+            var match = filter.match(regex);
+            if( match ) {
+                switch (regex) {
+                    case REGEX.parenthesis:
+                        if( match.length > 2 ) {
+                            if( match[2].indexOf(')') < match[2].indexOf('(')) {
+                                continue;
+                            }
+                            obj = parseFragment(match[2]);
+                        }
+                        break;
+                    case REGEX.andor:
+                        obj = new Predicate({
+                            subject: parseFragment(match[1]),
+                            operator: match[2],
+                            value: parseFragment(match[3])
+                        });
+                        break;
+                    case REGEX.op:
+                        obj = new Predicate({
+                            subject: match[1],
+                            operator: match[2],
+                            value: ( match[3].indexOf('\'') === -1) ? +match[3] : match[3]
+                        });
+                        break;
+                    case REGEX.startsWith:
+                    case REGEX.endsWith:
+                    case REGEX.contains:
+                        obj = buildLike(match,key);
+                        break;
+                }
+                found = true;
             }
-            return result;
-        },
+        };
+        return obj;
+    }
 
+    return {
         parse: function(filterStr) {
             var self = this;
             if( !filterStr ) {
@@ -97,61 +130,117 @@ var ODataParser = function() {
             var filter = filterStr.trim();
             var obj = {};
             if( filter.length > 0 ) {
-                obj = self.parseFragment(filter);
+                obj = parseFragment(filter);
             }
-            return obj;
-        },
-
-        parseFragment: function(filter) {
-            var self = this;
-            var found = false;
-            var obj = null;
-            for (var key in REGEX ) {
-                var regex = REGEX[key];
-                if( found ) {
-                    break;
-                }
-                var match = filter.match(regex);
-                if( match ) {
-
-                    switch (regex) {
-                        case REGEX.parenthesis:
-                            if( match.length > 2 ) {
-                                if( match[2].indexOf(')') < match[2].indexOf('(')) {
-                                    continue;
-                                }
-                                obj = self.parseFragment(match[2]);
-                            }
-                            break;
-                        case REGEX.andor:
-                            obj = {
-                                left: self.parseFragment(match[1]),
-                                type: match[2],
-                                right: self.parseFragment(match[3])
-                            };
-                            break;
-                        case REGEX.op:
-                            obj = {
-                                left: match[1],
-                                type: match[2],
-                                right: ( match[3].indexOf('\'') === -1) ? +match[3] : match[3]
-                            };
-                            break;
-                        case REGEX.startsWith:
-                        case REGEX.endsWith:
-                        case REGEX.contains:
-                            obj = buildLike(match,key);
-                            break;
-                    }
-                    found = true;
-                }
-            };
             return obj;
         }
     };
 }();
 
+var Predicate = function (config) {
+    if (!config) {
+        config = {};
+    }
+    this.subject = config.subject;
+    this.value = config.value;
+    this.operator = (config.operator) ? config.operator : Operators.EQUALS;
+    return this;
+};
+
+Predicate.concat = function (operator, p) {
+    if (arguments.length < 3) {
+        throw {
+            key: 'INSUFFICIENT_PREDICATES',
+            msg: 'At least two predicates are required'
+        };
+    } else if (!operator || !Operators.isLogical(operator)) {
+        throw {
+            key: 'INVALID_LOGICAL',
+            msg: 'The operator is not representative of a logical operator.'
+        }
+    }
+    var result;
+    var len = arguments.length;
+    result = new Predicate({
+        subject: p,
+        operator: operator
+    });
+    if (len === 3) {
+        result.value = arguments[len - 1];
+    } else {
+        result.value = Predicate.concat(operator, arguments.slice(2, len));
+    }
+    return result;
+};
+
+Predicate.prototype.flatten = function(result) {
+    if( !result ) {
+        result = [];
+    }
+    if( Operators.isLogical(this.operator) ) {
+        result = result.concat(this.subject.flatten());
+        result = result.concat(this.value.flatten());
+    } else {
+        result.push(this);
+    }
+    return result;
+};
+
+/**
+ * Will serialie the predicate to an ODATA compliant serialized string.
+ *
+ * @return {String} The compliant ODATA query string
+ */
+Predicate.prototype.serialize = function() {
+    var retValue = '';
+    if (this.operator) {
+        if (this.subject === undefined) {
+            throw {
+                key: 'INVALID_SUBJECT',
+                msg: 'The subject is required and is not specified.'
+            };
+        }
+        if (Operators.isLogical(this.operator) && (!(this.subject instanceof Predicate ||
+            this.value instanceof Predicate) || this.subject instanceof Predicate && this.value === undefined)) {
+            throw {
+                key: 'INVALID_LOGICAL',
+                msg: 'The predicate does not represent a valid logical expression.'
+            };
+        }
+        retValue = '(' + ((this.subject instanceof Predicate) ? this.subject.serialize() : this.subject) + ' ' + this.operator;
+        if (!Operators.isUnary(this.operator)) {
+            if (this.value === undefined) {
+                throw {
+                    key: 'INVALID_VALUE',
+                    msg: 'The value was required but was not defined.'
+                };
+            }
+            retValue += ' ';
+            var val = typeof this.value;
+            if (val === 'string') {
+                retValue += '\'' + this.value + '\'';
+            } else if (val === 'number' || val === 'boolean') {
+                retValue += this.value;
+            } else if (this.value instanceof Predicate) {
+                retValue += this.value.serialize();
+            } else if (this.value instanceof Date) {
+                retValue += 'datetimeoffset\'' + this.value.toISOString() + '\'';
+            } else {
+                throw {
+                    key: 'UNKNOWN_TYPE',
+                    msg: 'Unsupported value type: ' + (typeof this.value),
+                    source: this.value
+                };
+            }
+
+        }
+        retValue += ')';
+    }
+    return retValue;
+}
+
 module.exports = {
-    parser: ODataParser,
-    operator: Operator
+    Parser: ODataParser,
+    Operators: Operators,
+    Predicate: Predicate
 };

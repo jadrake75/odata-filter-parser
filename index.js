@@ -15,3 +15,9 @@
  */
 
 module.exports = require('./dist/odata-parser');
+module.exports = {
+    Predicate: require('./dist/predicate'),
+    Operators: require('./dist/odata-parser').Operators,
+    Parser: require('./dist/odata-parser').Parser
+
+}

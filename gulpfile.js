@@ -23,7 +23,6 @@ var DESTINATION = 'dist';
 
 gulp.task('compress', function() {
     return gulp.src('src/*.js')
-        .pipe(gulp.dest(DESTINATION))
         .pipe(concat('odata-parser-min.js'))
         .pipe(uglify())
         .pipe(gulp.dest(DESTINATION));
@@ -31,6 +30,7 @@ gulp.task('compress', function() {
 
 gulp.task('copy', function() {
     return gulp.src('src/**')
+        .pipe(concat('odata-parser.js'))
         .pipe(gulp.dest(DESTINATION));
 });
 
@@ -40,6 +40,6 @@ gulp.task('bump', function(){
         .pipe(gulp.dest('./'));
 });
 
-gulp.task('default', ['copy', 'compress'], function () {
+gulp.task('default', ['copy','compress'], function () {
 
 });

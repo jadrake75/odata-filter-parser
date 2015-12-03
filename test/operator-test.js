@@ -16,7 +16,7 @@
 
 var superagent = require('superagent')
 var expect = require('expect.js')
-var operator = require("../src/odata-parser").operator;
+var operators = require("../src/odata-parser").Operators;
 
 describe('Operator Tests', function (done) {
 
@@ -24,30 +24,30 @@ describe('Operator Tests', function (done) {
 
         it('Logical test for and', function () {
             var s = "and";
-            expect(s).to.be.eql(operator.AND);
-            expect(operator.isLogical(s)).to.be(true);
+            expect(s).to.be.eql(operators.AND);
+            expect(operators.isLogical(s)).to.be(true);
         });
 
         it('Logical test for or', function () {
             var s = "or";
-            expect(s).to.be.eql(operator.OR);
-            expect(operator.isLogical(s)).to.be(true);
+            expect(s).to.be.eql(operators.OR);
+            expect(operators.isLogical(s)).to.be(true);
         });
 
         it('Logical test not valid for eq', function () {
             var s = "eq";
-            expect(operator.isLogical(s)).to.be(false);
+            expect(operators.isLogical(s)).to.be(false);
         });
 
         it('Unary test for null', function() {
             var s = "is null";
-            expect(s).to.be.eql(operator.IS_NULL);
-            expect(operator.isUnary(s)).to.be(true);
+            expect(s).to.be.eql(operators.IS_NULL);
+            expect(operators.isUnary(s)).to.be(true);
         });
 
         it('Unary test for binary operation', function() {
             var s = "and";
-            expect(operator.isUnary(s)).to.be(false);
+            expect(operators.isUnary(s)).to.be(false);
         });
     });
 });
