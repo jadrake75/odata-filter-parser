@@ -237,6 +237,26 @@ describe('Predicate Tests', function (done) {
             expect(r.value).to.be(p3);
         });
 
+        it('Concatenate with an array of values', function() {
+            var arr = [];
+            for( var i = 0; i < 3; i++ ) {
+                arr.push( new Predicate({
+                    subject: 'name',
+                    operator: Operators.EQUALS,
+                    value: 'text-' + i
+                }));
+            }
+            var result = Predicate.concat(Operators.OR, arr);
+            expect(result.subject).to.be(arr[0]);
+            expect(result.value).to.not.be(null);
+            expect(result.operator).to.be(Operators.OR);
+            var r = result.value;
+            expect(r instanceof Predicate).to.be(true);
+            expect(r.subject).to.be(arr[1]);
+            expect(r.operator).to.be(Operators.OR);
+            expect(r.value).to.be(arr[2]);
+        });
+
     });
 
     describe('Predicate flatten tests', function() {

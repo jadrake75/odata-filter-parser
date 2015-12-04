@@ -62,7 +62,7 @@ var Predicate = function (config) {
 };
 
 Predicate.concat = function (operator, p) {
-    if (arguments.length < 3) {
+    if (arguments.length < 3 && !(p instanceof Array && p.length >= 2)) {
         throw {
             key: 'INSUFFICIENT_PREDICATES',
             msg: 'At least two predicates are required'
@@ -74,20 +74,27 @@ Predicate.concat = function (operator, p) {
         };
     }
     var result;
-    var len = arguments.length;
+    var arr = [];
+    if( p instanceof Array ) {
+        arr = p;
+    } else {
+        for( var i = 1; i < arguments.length; i++ ) {
+            arr.push( arguments[i] );
+        }
+    }
+    var len = arr.length;
     result = new Predicate({
-        subject: p,
+        subject: arr[0],
         operator: operator
     });
-    if (len === 3) {
-        result.value = arguments[len - 1];
+    if (len === 2) {
+        result.value = arr[len - 1];
     } else {
         var a = [];
-        a.push(operator);
-        for( var i = 2; i < len; i++ ) {
-            a.push(arguments[i]);
+        for( var j = 1; j < len; j++ ) {
+            a.push(arr[j]);
         }
-        result.value = Predicate.concat.apply(null, a);
+        result.value = Predicate.concat(operator, a);
     }
     return result;
 };
