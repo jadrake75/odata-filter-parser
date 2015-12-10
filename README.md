@@ -1,26 +1,52 @@
 # odata-filter-parser
 
-Library for parsing and building OData filter strings
+Library for parsing and building and parsing OData filter strings.  Only compatible with a subset of functions defined in OData specification
+
+* Supports OData specification V2 through V4 (partially)
+
+## Using the Library
+Full API documentation and examples is available on the [Documentation](https://github.com/jadrake75/odata-filter-parser/blob/master/doc/Intro.md) page.
+
+To include the library in your application, you can either reference the `.js` files under the `dist` folder or use the JSPM / Node 
+modular inclusion discussed on the [Documentation](https://github.com/jadrake75/odata-filter-parser/blob/master/doc/Intro.md) page.
+
+## Dependencies
+This library has *no* third-party dependencies (outside of testing and building tools used by source).  No additional software is required.
+
+## Platform Support
+This library should work on all modern browsers that support HTML-5 EcmaScript 5 standard as well as V8 (used by NodeJS).
+
+## Build Status
+
+[![Build Status](http://drake-server.ddns.net:9000/jenkins/buildStatus/icon?job=odata-filter-parser)](http://drake-server.ddns.net:9000/jenkins/job/odata-filter-parser/)
 
 
-  .
-<hr>
-## API
+## Building The Library
+To build the code, follow these steps.
 
-The library exports the following objects listed below:
-
-1. **Parser** - The OData filter parser
-2. **Operators** - The OData filter operators
-3. **Prediate** - An object representing statements with subject, operator and value
-
-### Parser
-
-  * parse( string ) - Will parse the OData filter string into a series of tokens with left and right values and a type operator.
+  * Ensure that [NodeJS](http://nodejs.org) is installed.  This provides the platform on which the build tooling is run.
+  * From the project folder, executue the following command:
   
-<hr>  
+  ```
+  npm install
+  ```
+  * Ensure that [Gulp](http://gulpjs.com) is installed.  If you need to install it, use the following command (however 
+  running `npm install` above should have installed a local copy):
+  
+  ```
+  npm install -g gulp
+  ```
+  * To build the code, you can not run:
+  
+  ```
+  gulp
+  ```
+  * You will find the built code under the `dist` folder.
+  * See `gulpfile.js` for other tasks related to the generating of the library.
+
 ## Running Tests
 
-To exist the tests with mocha simply run
+To execute the tests with mocha simply run
 
 ```
 npm test
@@ -44,9 +70,11 @@ istanbul cover c:\users\<your-userame>\AppData\Roaming\npm\node_modules\mocha\bi
 
 The results will be in the coverage folder
 
-  .
 
-<hr>
+## Submission Guidelines
+Pull-Requests will be used for accepting bug fixes or feature requests, however please contact the owner prior to proposing
+a pull-request for non-bug fixes to avoid unnecessary work and effort.  All submissions should provide test coverage and
+conform with the eslint standards defined in the `.eslintrc` file.
 
 ## Deployment Information
 

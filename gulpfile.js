@@ -15,6 +15,8 @@
  */
 
 var gulp = require('gulp');
+var mocha = require('gulp-mocha');
+var eslint = require('gulp-eslint');
 var bump = require('gulp-bump');
 var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
@@ -40,6 +42,27 @@ gulp.task('bump', function(){
         .pipe(gulp.dest('./'));
 });
 
-gulp.task('default', ['copy','compress'], function () {
+gulp.task('eslint', function () {
+    return gulp.src('src/**')
+        .pipe(eslint({
+            configFile: 'conf/.eslintrc'
+        }))
+        .pipe(eslint.format());
+});
 
+gulp.task('test', function() {
+   return gulp.src('test/**.js')
+       .pipe(mocha({
+           reporter: 'spec'
+       }));
+});
+gulp.task('eslint', function () {
+    return gulp.src('src/**')
+        .pipe(eslint({
+            configFile: 'conf/.eslintrc'
+        }))
+        .pipe(eslint.format());
+});
+
+gulp.task('default', ['test', 'eslint', 'copy', 'compress'], function () {
 });
