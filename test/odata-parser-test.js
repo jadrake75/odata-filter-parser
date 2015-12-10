@@ -152,6 +152,13 @@ describe('ODataParser Tests', function (done) {
             expect( obj.operator).to.be.eql('like');
         });
 
+        it('Parse datetimeoffset value', function() {
+            var s = "(purchased le datetimeoffset'2015-12-06T05:00:00.000Z')";
+            var obj = parser.parse(s);
+            expect( obj.subject).to.be.eql('purchased');
+            expect( obj.value).to.be.eql(new Date('2015-12-06T05:00:00.000Z'));
+            expect( obj.operator).to.be.eql('le');
+        })
     });
 
 });

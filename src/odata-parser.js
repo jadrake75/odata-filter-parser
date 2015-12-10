@@ -108,6 +108,12 @@ var ODataParser = function() {
                             operator: match[2],
                             value: ( match[3].indexOf('\'') === -1) ? +match[3] : match[3]
                         });
+                        if(obj.value.indexOf && obj.value.indexOf("datetimeoffset") === 0) {
+                            var m = obj.value.match(/^datetimeoffset'(.*)'$/);
+                            if( m && m.length > 1) {
+                                obj.value = new Date(m[1]);
+                            }
+                        }
                         break;
                     case REGEX.startsWith:
                     case REGEX.endsWith:
