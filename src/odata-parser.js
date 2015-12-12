@@ -51,6 +51,13 @@ var Operators = {
     }
 };
 
+/**
+ * Predicate is the basic model construct of the odata expression
+ *
+ * @param config
+ * @returns {Predicate}
+ * @constructor
+ */
 var Predicate = function (config) {
     if (!config) {
         config = {};
