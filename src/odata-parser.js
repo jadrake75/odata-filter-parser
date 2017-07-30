@@ -151,9 +151,9 @@ Predicate.prototype.serialize = function() {
                 v = v.substring(1);
             } else if (lastIndex === this.value.length - 1 && index === lastIndex) {
                 op = 'startswith';
-                v = v.substring(0,lastIndex);
-            } else if(index === 0 && lastIndex === this.value.length -1)  {
-                v = v.substring(1,lastIndex);
+                v = v.substring(0, lastIndex);
+            } else if(index === 0 && lastIndex === this.value.length - 1) {
+                v = v.substring(1, lastIndex);
             }
             retValue += op + '(' + this.subject + ',\'' + v + '\')';
         } else {
@@ -178,8 +178,8 @@ Predicate.prototype.serialize = function() {
                     retValue += 'datetimeoffset\'' + this.value.toISOString() + '\'';
                 } else {
                     throw {
-                        key:    'UNKNOWN_TYPE',
-                        msg:    'Unsupported value type: ' + (typeof this.value),
+                        key: 'UNKNOWN_TYPE',
+                        msg: 'Unsupported value type: ' + (typeof this.value),
                         source: this.value
                     };
                 }
@@ -250,8 +250,7 @@ var ODataParser = function() {
                             var m = obj.value.match(/^datetimeoffset'(.*)'$/);
                             if(quoted && quoted.length > 1) {
                                 obj.value = quoted[1];
-                            }
-                            else if(m && m.length > 1) {
+                            } else if(m && m.length > 1) {
                                 obj.value = new Date(m[1]);
                             }
                         }
@@ -284,8 +283,6 @@ var ODataParser = function() {
         }
     };
 }();
-
-
 
 module.exports = {
     Parser: ODataParser,
