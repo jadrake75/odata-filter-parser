@@ -30,7 +30,7 @@ This library should work on all modern browsers that support HTML-5 EcmaScript 5
 
 ## Build Status
 
-[![Build Status](http://drake-server.ddns.net:9000/jenkins/buildStatus/icon?job=odata-filter-parser)](http://drake-server.ddns.net:9000/jenkins/job/odata-filter-parser/)
+[![Build Status](http://drake-server.ddns.net:8080/buildStatus/icon?job=odata-filter-parser)](http://drake-server.ddns.net:8080/job/odata-filter-parser/)
 
 
 ## Building The Library
