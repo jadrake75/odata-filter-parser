@@ -250,7 +250,6 @@ var ODataParser = function() {
                             var m = obj.value.match(/^datetimeoffset'(.*)'$/);
                             if(quoted && quoted.length > 1) {
                                 obj.value = quoted[1];
-                                console.log("new value=", obj.value);
                             }
                             else if(m && m.length > 1) {
                                 obj.value = new Date(m[1]);
