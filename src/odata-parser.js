@@ -187,9 +187,6 @@ var ODataParser = function() {
 
     function buildLike(match, key) {
         var right = (key === 'startsWith') ? match[2] + '*' : (key === 'endsWith') ? '*' + match[2] : '*' + match[2] + '*';
-        if( match[0].charAt(match[0].lastIndexOf(')') - 1) === "\'") {
-            right = "\'" + right + "\'";
-        }
         return {
             subject: match[1],
             operator: Operators.LIKE,
@@ -229,12 +226,19 @@ var ODataParser = function() {
                             operator: match[2],
                             value: ( match[3].indexOf('\'') === -1) ? +match[3] : match[3]
                         });
-                        if(obj.value.indexOf && obj.value.indexOf("datetimeoffset") === 0) {
+                        if(typeof obj.value === 'string') {
+                            var quoted = obj.value.match(/^'(.*)'$/);
                             var m = obj.value.match(/^datetimeoffset'(.*)'$/);
-                            if( m && m.length > 1) {
+                            if(quoted && quoted.length > 1) {
+                                obj.value = quoted[1];
+                                console.log("new value=", obj.value);
+                            }
+                            else if(m && m.length > 1) {
                                 obj.value = new Date(m[1]);
                             }
                         }
+
+
                         break;
                     case REGEX.startsWith:
                     case REGEX.endsWith:

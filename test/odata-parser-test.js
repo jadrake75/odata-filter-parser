@@ -35,7 +35,7 @@ describe('ODataParser Tests', function (done) {
             var obj = parser.parse(s);
             expect(obj.subject).to.be.eql("name");
             expect(obj.operator).to.be.eql("eq");
-            expect(obj.value).to.be.eql("'test'");
+            expect(obj.value).to.be.eql("test");
         });
 
         it('Simple binary expression with String with spaces', function () {
@@ -43,7 +43,7 @@ describe('ODataParser Tests', function (done) {
             var obj = parser.parse(s);
             expect(obj.subject).to.be.eql("name");
             expect(obj.operator).to.be.eql("eq");
-            expect(obj.value).to.be.eql("'test of strings'");
+            expect(obj.value).to.be.eql("test of strings");
         });
 
         it('Simple binary expression with a number value', function () {
@@ -69,7 +69,7 @@ describe('ODataParser Tests', function (done) {
             var obj = parser.parse(s);
             expect(obj.subject).to.be.eql("name");
             expect(obj.operator).to.be.eql("eq");
-            expect(obj.value).to.be.eql("'ultramarine (R)'");
+            expect(obj.value).to.be.eql("ultramarine (R)");
         });
 
         it('Simple binary expression with text containing parenthesis and bracketted parenthesis', function() {
@@ -77,7 +77,7 @@ describe('ODataParser Tests', function (done) {
             var obj = parser.parse(s);
             expect(obj.subject).to.be.eql("name");
             expect(obj.operator).to.be.eql("eq");
-            expect(obj.value).to.be.eql("'ultramarine (R)'");
+            expect(obj.value).to.be.eql("ultramarine (R)");
         });
 
         it('Compound binary expression with text containing parenthesis', function() {
@@ -88,10 +88,10 @@ describe('ODataParser Tests', function (done) {
             expect( obj.operator).to.be.eql("and");
             expect(subject.subject).to.be.eql("name");
             expect(subject.operator).to.be.eql("eq");
-            expect(subject.value).to.be.eql("'ultramarine (R)'");
+            expect(subject.value).to.be.eql("ultramarine (R)");
             expect(value.subject).to.be.eql("rate");
             expect(value.operator).to.be.eql("eq");
-            expect(value.value).to.be.eql("'1d'");
+            expect(value.value).to.be.eql("1d");
         });
 
         it('Compound binary expression with parenthesis on value', function () {
@@ -102,7 +102,7 @@ describe('ODataParser Tests', function (done) {
             expect(obj.operator).to.be.eql("and");
             expect(subject.subject).to.be.eql("name");
             expect(subject.operator).to.be.eql("eq");
-            expect(subject.value).to.be.eql("\'Bob\'");
+            expect(subject.value).to.be.eql("Bob");
             expect(value.subject).to.be.eql("id");
             expect(value.operator).to.be.eql("gt");
             expect(value.value).to.be.eql(5);
@@ -116,20 +116,20 @@ describe('ODataParser Tests', function (done) {
             expect(obj.operator).to.be.eql("and");
             expect(subject.subject).to.be.eql("name");
             expect(subject.operator).to.be.eql("eq");
-            expect(subject.value).to.be.eql("\'Bob\'");
+            expect(subject.value).to.be.eql("Bob");
             expect(value.operator).to.be.eql("and");
             subject = value.subject;
             value = value.value;
             expect(subject.subject).to.be.eql("lastName");
             expect(subject.operator).to.be.eql("eq");
-            expect(subject.value).to.be.eql("\'Smiley\'");
+            expect(subject.value).to.be.eql("Smiley");
 
             expect(value.operator).to.be.eql("or");
             subject = value.subject;
             value = value.value;
             expect(subject.subject).to.be.eql("weather");
             expect(subject.operator).to.be.eql("ne");
-            expect(subject.value).to.be.eql("\'sunny\'");
+            expect(subject.value).to.be.eql("sunny");
             expect(value.subject).to.be.eql("temp");
             expect(value.operator).to.be.eql("ge");
             expect(value.value).to.be.eql("54");
@@ -140,7 +140,7 @@ describe('ODataParser Tests', function (done) {
             var s = "startswith(name,'Ja')";
             var obj = parser.parse(s);
             expect( obj.subject).to.be.eql('name');
-            expect( obj.value).to.be.eql('\'Ja*\'');
+            expect( obj.value).to.be.eql('Ja*');
             expect( obj.operator).to.be.eql('like');
         })
 
@@ -148,7 +148,7 @@ describe('ODataParser Tests', function (done) {
             var s = "endswith(name,'Hole')";
             var obj = parser.parse(s);
             expect( obj.subject).to.be.eql('name');
-            expect( obj.value).to.be.eql('\'*Hole\'');
+            expect( obj.value).to.be.eql('*Hole');
             expect( obj.operator).to.be.eql('like');
         });
 
@@ -156,7 +156,7 @@ describe('ODataParser Tests', function (done) {
             var s = "contains(name,'Something')";
             var obj = parser.parse(s);
             expect( obj.subject).to.be.eql('name');
-            expect( obj.value).to.be.eql('\'*Something*\'');
+            expect( obj.value).to.be.eql('*Something*');
             expect( obj.operator).to.be.eql('like');
         });
 
