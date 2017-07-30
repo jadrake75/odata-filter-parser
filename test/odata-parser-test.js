@@ -17,6 +17,7 @@
 var superagent = require('superagent')
 var expect = require('expect.js')
 var parser = require("../src/odata-parser").Parser;
+var Predicate = require("../src/odata-parser").Predicate;
 
 describe('ODataParser Tests', function (done) {
 
@@ -158,6 +159,12 @@ describe('ODataParser Tests', function (done) {
             expect( obj.subject).to.be.eql('name');
             expect( obj.value).to.be.eql('*Something*');
             expect( obj.operator).to.be.eql('like');
+        });
+
+        it('Verify like operations return a Predicate', function() {
+            var s = "contains(name,'predName')";
+            var obj = parser.parse(s);
+            expect( obj instanceof Predicate).to.be(true);
         });
 
         it('Parse datetimeoffset value', function() {

@@ -206,11 +206,11 @@ var ODataParser = function() {
 
     function buildLike(match, key) {
         var right = (key === 'startsWith') ? match[2] + '*' : (key === 'endsWith') ? '*' + match[2] : '*' + match[2] + '*';
-        return {
+        return new Predicate({
             subject: match[1],
             operator: Operators.LIKE,
             value: right
-        };
+        });
     }
 
     function parseFragment(filter) {
