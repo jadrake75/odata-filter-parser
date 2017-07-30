@@ -154,6 +154,56 @@ describe('Predicate Tests', function (done) {
                 expect(err.key).to.be.eql('INVALID_LOGICAL');
             }
         });
+
+        it('Serialize LIKE with no wildcard', function() {
+            var p = new Predicate({
+                subject: 'name',
+                operator: Operators.LIKE,
+                value: 'Serena'
+            });
+            var s = p.serialize();
+            expect(s).to.be('(contains(name,\'Serena\'))');
+        });
+
+        it('Serialize LIKE with wildcards', function() {
+            var p = new Predicate({
+                subject: 'name',
+                operator: Operators.LIKE,
+                value: '*Some*'
+            });
+            var s = p.serialize();
+            expect(s).to.be('(contains(name,\'Some\'))');
+        });
+
+        it('Serialize LIKE with starting wildcard', function() {
+            var p = new Predicate({
+                subject: 'name',
+                operator: Operators.LIKE,
+                value: '*ending'
+            });
+            var s = p.serialize();
+            expect(s).to.be('(endswith(name,\'ending\'))');
+        });
+
+        it('Serialize LIKE with ending wildcard', function() {
+            var p = new Predicate({
+                subject: 'name',
+                operator: Operators.LIKE,
+                value: 'starting*'
+            });
+            var s = p.serialize();
+            expect(s).to.be('(startswith(name,\'starting\'))');
+        });
+
+        it('Serialize LIKE with middle wildcard', function() {
+            var p = new Predicate({
+                subject: 'name',
+                operator: Operators.LIKE,
+                value: 'start*end'
+            });
+            var s = p.serialize();
+            expect(s).to.be('(contains(name,\'start*end\'))');
+        });
     });
 
     describe('Predicate concat tests', function() {

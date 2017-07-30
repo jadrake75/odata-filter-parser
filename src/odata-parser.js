@@ -140,33 +140,52 @@ Predicate.prototype.serialize = function() {
                 msg: 'The predicate does not represent a valid logical expression.'
             };
         }
-        retValue = '(' + ((this.subject instanceof Predicate) ? this.subject.serialize() : this.subject) + ' ' + this.operator;
-        if (!Operators.isUnary(this.operator)) {
-            if (this.value === undefined || this.value === null) {
-                throw {
-                    key: 'INVALID_VALUE',
-                    msg: 'The value was required but was not defined.'
-                };
+        retValue = '(';
+        if(this.operator === Operators.LIKE) {
+            var op = 'contains';
+            var lastIndex = this.value.lastIndexOf('*');
+            var index = this.value.indexOf('*');
+            var v = this.value;
+            if (index === 0 && lastIndex !== this.value.length - 1) {
+                op = 'endswith';
+                v = v.substring(1);
+            } else if (lastIndex === this.value.length - 1 && index === lastIndex) {
+                op = 'startswith';
+                v = v.substring(0,lastIndex);
+            } else if(index === 0 && lastIndex === this.value.length -1)  {
+                v = v.substring(1,lastIndex);
             }
-            retValue += ' ';
-            var val = typeof this.value;
-            if (val === 'string') {
-                retValue += '\'' + this.value + '\'';
-            } else if (val === 'number' || val === 'boolean') {
-                retValue += this.value;
-            } else if (this.value instanceof Predicate) {
-                retValue += this.value.serialize();
-            } else if (this.value instanceof Date) {
-                retValue += 'datetimeoffset\'' + this.value.toISOString() + '\'';
-            } else {
-                throw {
-                    key: 'UNKNOWN_TYPE',
-                    msg: 'Unsupported value type: ' + (typeof this.value),
-                    source: this.value
-                };
-            }
+            retValue += op + '(' + this.subject + ',\'' + v + '\')';
+        } else {
+            retValue += ((this.subject instanceof Predicate) ? this.subject.serialize() : this.subject) + ' ' + this.operator;
 
+            if (!Operators.isUnary(this.operator)) {
+                if (this.value === undefined || this.value === null) {
+                    throw {
+                        key: 'INVALID_VALUE',
+                        msg: 'The value was required but was not defined.'
+                    };
+                }
+                retValue += ' ';
+                var val = typeof this.value;
+                if (val === 'string') {
+                    retValue += '\'' + this.value + '\'';
+                } else if (val === 'number' || val === 'boolean') {
+                    retValue += this.value;
+                } else if (this.value instanceof Predicate) {
+                    retValue += this.value.serialize();
+                } else if (this.value instanceof Date) {
+                    retValue += 'datetimeoffset\'' + this.value.toISOString() + '\'';
+                } else {
+                    throw {
+                        key:    'UNKNOWN_TYPE',
+                        msg:    'Unsupported value type: ' + (typeof this.value),
+                        source: this.value
+                    };
+                }
+            }
         }
+
         retValue += ')';
     }
     return retValue;
