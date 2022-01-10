@@ -58,29 +58,13 @@ To build the code, follow these steps.
 
 ## Running Tests
 
-To execute the tests with mocha simply run
+To execute the tests with jest simply run
 
 ```
 npm test
 ```
 
-Or execute them as a mocha job within your IDE
-
-### Code Coverage
-
-You can generate code coverage results using istanbul.  To do so install istanbul globally with
-
-```
-npm install -g istanbul
-```
-
-Next, to produce coverage results use the following on windows (note the _mocha and fullpath is required at least in my environment)
-
-```
-istanbul cover c:\users\<your-userame>\AppData\Roaming\npm\node_modules\mocha\bin\_mocha -- --ui bdd -R spec
-```
-
-The results will be in the coverage folder
+This will generate coverage information automatically.
 
 
 ## Submission Guidelines

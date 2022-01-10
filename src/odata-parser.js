@@ -1,5 +1,5 @@
 /**
- Copyright 2015 Jason Drake
+ Copyright 2022 Jason Drake
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -82,11 +82,11 @@ Predicate.concat = function (operator, p) {
     }
     var result;
     var arr = [];
-    if( p instanceof Array ) {
+    if (p instanceof Array) {
         arr = p;
     } else {
-        for( var i = 1; i < arguments.length; i++ ) {
-            arr.push( arguments[i] );
+        for (var i = 1; i < arguments.length; i++) {
+            arr.push(arguments[i]);
         }
     }
     var len = arr.length;
@@ -98,7 +98,7 @@ Predicate.concat = function (operator, p) {
         result.value = arr[len - 1];
     } else {
         var a = [];
-        for( var j = 1; j < len; j++ ) {
+        for (var j = 1; j < len; j++) {
             a.push(arr[j]);
         }
         result.value = Predicate.concat(operator, a);
@@ -106,11 +106,11 @@ Predicate.concat = function (operator, p) {
     return result;
 };
 
-Predicate.prototype.flatten = function(result) {
-    if( !result ) {
+Predicate.prototype.flatten = function (result) {
+    if (!result) {
         result = [];
     }
-    if( Operators.isLogical(this.operator) ) {
+    if (Operators.isLogical(this.operator)) {
         result = result.concat(this.subject.flatten());
         result = result.concat(this.value.flatten());
     } else {
@@ -124,7 +124,7 @@ Predicate.prototype.flatten = function(result) {
  *
  * @return {String} The compliant ODATA query string
  */
-Predicate.prototype.serialize = function() {
+Predicate.prototype.serialize = function () {
     var retValue = '';
     if (this.operator) {
         if (this.subject === undefined || this.subject === null) {
@@ -141,7 +141,7 @@ Predicate.prototype.serialize = function() {
             };
         }
         retValue = '(';
-        if(this.operator === Operators.LIKE) {
+        if (this.operator === Operators.LIKE) {
             var op = 'contains';
             var lastIndex = this.value.lastIndexOf('*');
             var index = this.value.indexOf('*');
@@ -152,7 +152,7 @@ Predicate.prototype.serialize = function() {
             } else if (lastIndex === this.value.length - 1 && index === lastIndex) {
                 op = 'startswith';
                 v = v.substring(0, lastIndex);
-            } else if(index === 0 && lastIndex === this.value.length - 1) {
+            } else if (index === 0 && lastIndex === this.value.length - 1) {
                 v = v.substring(1, lastIndex);
             }
             retValue += op + '(' + this.subject + ',\'' + v + '\')';
@@ -191,7 +191,7 @@ Predicate.prototype.serialize = function() {
     return retValue;
 };
 
-var ODataParser = function() {
+var ODataParser = function () {
 
     "use strict";
 
@@ -216,52 +216,52 @@ var ODataParser = function() {
     function parseFragment(filter) {
         var found = false;
         var obj = null;
-        for (var key in REGEX ) {
+        for (var key in REGEX) {
             var regex = REGEX[key];
-            if( found ) {
+            if (found) {
                 break;
             }
             var match = filter.match(regex);
-            if( match ) {
+            if (match) {
                 switch (regex) {
-                    case REGEX.parenthesis:
-                        if( match.length > 2 ) {
-                            if( match[2].indexOf(')') < match[2].indexOf('(')) {
-                                continue;
-                            }
-                            obj = parseFragment(match[2]);
+                case REGEX.parenthesis:
+                    if (match.length > 2) {
+                        if (match[2].indexOf(')') < match[2].indexOf('(')) {
+                            continue;
                         }
-                        break;
-                    case REGEX.andor:
-                        obj = new Predicate({
-                            subject: parseFragment(match[1]),
-                            operator: match[2],
-                            value: parseFragment(match[3])
-                        });
-                        break;
-                    case REGEX.op:
-                        obj = new Predicate({
-                            subject: match[1],
-                            operator: match[2],
-                            value: ( match[3].indexOf('\'') === -1) ? +match[3] : match[3]
-                        });
-                        if(typeof obj.value === 'string') {
-                            var quoted = obj.value.match(/^'(.*)'$/);
-                            var m = obj.value.match(/^datetimeoffset'(.*)'$/);
-                            if(quoted && quoted.length > 1) {
-                                obj.value = quoted[1];
-                            } else if(m && m.length > 1) {
-                                obj.value = new Date(m[1]);
-                            }
+                        obj = parseFragment(match[2]);
+                    }
+                    break;
+                case REGEX.andor:
+                    obj = new Predicate({
+                        subject: parseFragment(match[1]),
+                        operator: match[2],
+                        value: parseFragment(match[3])
+                    });
+                    break;
+                case REGEX.op:
+                    obj = new Predicate({
+                        subject: match[1],
+                        operator: match[2],
+                        value: (match[3].indexOf('\'') === -1) ? +match[3] : match[3]
+                    });
+                    if (typeof obj.value === 'string') {
+                        var quoted = obj.value.match(/^'(.*)'$/);
+                        var m = obj.value.match(/^datetimeoffset'(.*)'$/);
+                        if (quoted && quoted.length > 1) {
+                            obj.value = quoted[1];
+                        } else if (m && m.length > 1) {
+                            obj.value = new Date(m[1]);
                         }
+                    }
 
 
-                        break;
-                    case REGEX.startsWith:
-                    case REGEX.endsWith:
-                    case REGEX.contains:
-                        obj = buildLike(match, key);
-                        break;
+                    break;
+                case REGEX.startsWith:
+                case REGEX.endsWith:
+                case REGEX.contains:
+                    obj = buildLike(match, key);
+                    break;
                 }
                 found = true;
             }
@@ -270,13 +270,13 @@ var ODataParser = function() {
     }
 
     return {
-        parse: function(filterStr) {
-            if( !filterStr || filterStr === '') {
+        parse: function (filterStr) {
+            if (!filterStr || filterStr === '') {
                 return null;
             }
             var filter = filterStr.trim();
             var obj = {};
-            if( filter.length > 0 ) {
+            if (filter.length > 0) {
                 obj = parseFragment(filter);
             }
             return obj;

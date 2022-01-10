@@ -1,5 +1,5 @@
 /**
- Copyright 2017 Jason Drake
+ Copyright 2022 Jason Drake
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -15,13 +15,25 @@
  */
 
 var gulp = require('gulp');
-var mocha = require('gulp-mocha');
 var eslint = require('gulp-eslint');
 var bump = require('gulp-bump');
 var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
+var jest = require('@jest/core');
+var packageJson = require('./package.json');
 
 var DESTINATION = 'dist';
+
+async function testWithJest() {
+    const testResults =  await jest.runCLI({json: false, config: 'jest-config.js'},['test'])
+    const { results } = testResults
+    const isTestFailed = !results.success;
+    if (isTestFailed) {
+        console.log('You have some failed tests')
+        process.exit() // Breaks Gulp Pipe
+    }
+    return;
+}
 
 gulp.task('compress', function() {
     return gulp.src('src/*.js')
@@ -45,24 +57,12 @@ gulp.task('bump', function(){
 gulp.task('eslint', function () {
     return gulp.src('src/**')
         .pipe(eslint({
-            configFile: 'conf/.eslintrc'
+            configFile: '.eslintrc'
         }))
         .pipe(eslint.format());
 });
 
-gulp.task('test', function() {
-   return gulp.src('test/**.js')
-       .pipe(mocha({
-           reporter: 'spec'
-       }));
-});
-gulp.task('eslint', function () {
-    return gulp.src('src/**')
-        .pipe(eslint({
-            configFile: 'conf/.eslintrc'
-        }))
-        .pipe(eslint.format());
-});
+gulp.task('test', gulp.series(testWithJest));
 
-gulp.task('default', ['test', 'eslint', 'copy', 'compress'], function () {
-});
+
+gulp.task('default', gulp.series('eslint', 'test', 'copy', 'compress'));

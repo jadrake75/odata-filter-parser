@@ -14,33 +14,32 @@
  limitations under the License.
  */
 
-var expect = require('expect.js')
-var Predicate = require("../src/odata-parser").Predicate;
-var Operators = require("../src/odata-parser").Operators;
+var Predicate = require("../../src/odata-parser").Predicate;
+var Operators = require("../../src/odata-parser").Operators;
 
-describe('Predicate Tests', function (done) {
+describe('Predicate Tests', done => {
 
-    describe('Predicate tests', function() {
-        it('Empty constructor', function() {
+    describe('Predicate tests', () => {
+        it('Empty constructor', () => {
             var p = new Predicate();
-            expect(p.operator).to.be(Operators.EQUALS);
-            expect(p.subject).to.be(undefined);
-            expect(p.value).to.be(undefined);
+            expect(p.operator).toBe(Operators.EQUALS);
+            expect(p.subject).toBe(undefined);
+            expect(p.value).toBe(undefined);
         });
     });
 
-    describe('Predicate serialization tests', function () {
+    describe('Predicate serialization tests', () => {
 
-        it('Serialize a simple object', function () {
+        it('Serialize a simple object', () => {
             var p = new Predicate({
                 subject: 'name',
                 operator: Operators.EQUALS,
                 value: 'Serena'
             });
-            expect(p.serialize()).to.be.eql("(name eq 'Serena')");
+            expect(p.serialize()).toEqual("(name eq 'Serena')");
         });
 
-        it('Serialize a simple logical set of objects', function () {
+        it('Serialize a simple logical set of objects', () => {
             var p = new Predicate({
                 subject: new Predicate({
                     subject: 'name',
@@ -54,47 +53,47 @@ describe('Predicate Tests', function (done) {
                     value: 'Martinez'
                 })
             });
-            expect(p.serialize()).to.be.eql("((name eq 'Serena') and (lastname ne 'Martinez'))");
+            expect(p.serialize()).toEqual("((name eq 'Serena') and (lastname ne 'Martinez'))");
         });
 
-        it('Serialize boolean values', function() {
+        it('Serialize boolean values', () => {
             var p = new Predicate({
                 subject: 'happy',
                 operator: Operators.EQUALS,
                 value: true
             });
-            expect(p.serialize()).to.be.eql("(happy eq true)");
+            expect(p.serialize()).toEqual("(happy eq true)");
         });
 
-        it('Serialize numeric floating-point values', function() {
+        it('Serialize numeric floating-point values', () => {
             var p = new Predicate({
                 subject: 'pi',
                 operator: Operators.GREATER_THAN,
                 value: 3.14159
             });
-            expect(p.serialize()).to.be.eql("(pi gt 3.14159)");
+            expect(p.serialize()).toEqual("(pi gt 3.14159)");
         });
 
-        it('Serialize numeric integer values', function() {
+        it('Serialize numeric integer values', () => {
             var p = new Predicate({
                 subject: 'age',
                 operator: Operators.NOT_EQUAL,
                 value: 30
             });
-            expect(p.serialize()).to.be.eql("(age ne 30)");
+            expect(p.serialize()).toEqual("(age ne 30)");
         });
 
-        it('Serialize current date to ISO String', function() {
+        it('Serialize current date to ISO String', () => {
             var d = new Date();
             var p = new Predicate({
                 subject: 'created',
                 operator: Operators.GREATER_THAN,
                 value: d
             });
-            expect(p.serialize()).to.be.eql("(created gt datetimeoffset'" + d.toISOString() + "')");
+            expect(p.serialize()).toEqual("(created gt datetimeoffset'" + d.toISOString() + "')");
         });
 
-        it('Serialize object value fails', function() {
+        it('Serialize object value fails', () => {
             var p = new Predicate({
                 subject: 'created',
                 operator: Operators.EQUALS,
@@ -104,12 +103,12 @@ describe('Predicate Tests', function (done) {
                 expect(p.serialize());
                 fail("Should have failed to serialize an object value");
             } catch( err ) {
-                expect(err).to.not.be(null);
-                expect(err.key).to.be.eql('UNKNOWN_TYPE');
+                expect(err).not.toBe(null);
+                expect(err.key).toEqual('UNKNOWN_TYPE');
             }
         });
 
-        it('Serialize null value fails', function() {
+        it('Serialize null value fails', () => {
             var p = new Predicate({
                 subject: 'created',
                 operator: Operators.EQUALS,
@@ -119,12 +118,12 @@ describe('Predicate Tests', function (done) {
                 expect(p.serialize());
                 fail("Should have failed to serialize a null value");
             } catch( err ) {
-                expect(err).to.not.be(null);
-                expect(err.key).to.be.eql('INVALID_VALUE');
+                expect(err).not.toBe(null);
+                expect(err.key).toEqual('INVALID_VALUE');
             }
         });
 
-        it('Serialize null subject fails', function() {
+        it('Serialize null subject fails', () => {
             var p = new Predicate({
                 subject: null,
                 operator: Operators.EQUALS,
@@ -134,80 +133,83 @@ describe('Predicate Tests', function (done) {
                 expect(p.serialize());
                 fail("Should have failed to serialize a null subject");
             } catch( err ) {
-                expect(err).to.not.be(null);
-                expect(err.key).to.be.eql('INVALID_SUBJECT');
+                expect(err).not.toBe(null);
+                expect(err.key).toEqual('INVALID_SUBJECT');
             }
         });
 
-        it('Serialize logical expression where one side is a not at least a predicate fails', function() {
-            var p = new Predicate({
-                subject: 'name',
-                operator: Operators.AND,
-                value: 'foo'
-            });
-            try {
-                expect(p.serialize());
-                fail("Should have failed to serialize a non-predicate value");
-            } catch( err ) {
-                expect(err).to.not.be(null);
-                expect(err.key).to.be.eql('INVALID_LOGICAL');
+        it(
+            'Serialize logical expression where one side is a not at least a predicate fails',
+            () => {
+                var p = new Predicate({
+                    subject: 'name',
+                    operator: Operators.AND,
+                    value: 'foo'
+                });
+                try {
+                    expect(p.serialize());
+                    fail("Should have failed to serialize a non-predicate value");
+                } catch( err ) {
+                    expect(err).not.toBe(null);
+                    expect(err.key).toEqual('INVALID_LOGICAL');
+                }
             }
-        });
+        );
 
-        it('Serialize LIKE with no wildcard', function() {
+        it('Serialize LIKE with no wildcard', () => {
             var p = new Predicate({
                 subject: 'name',
                 operator: Operators.LIKE,
                 value: 'Serena'
             });
             var s = p.serialize();
-            expect(s).to.be('(contains(name,\'Serena\'))');
+            expect(s).toBe('(contains(name,\'Serena\'))');
         });
 
-        it('Serialize LIKE with wildcards', function() {
+        it('Serialize LIKE with wildcards', () => {
             var p = new Predicate({
                 subject: 'name',
                 operator: Operators.LIKE,
                 value: '*Some*'
             });
             var s = p.serialize();
-            expect(s).to.be('(contains(name,\'Some\'))');
+            expect(s).toBe('(contains(name,\'Some\'))');
         });
 
-        it('Serialize LIKE with starting wildcard', function() {
+        it('Serialize LIKE with starting wildcard', () => {
             var p = new Predicate({
                 subject: 'name',
                 operator: Operators.LIKE,
                 value: '*ending'
             });
             var s = p.serialize();
-            expect(s).to.be('(endswith(name,\'ending\'))');
+            expect(s).toBe('(endswith(name,\'ending\'))');
         });
 
-        it('Serialize LIKE with ending wildcard', function() {
+        it('Serialize LIKE with ending wildcard', () => {
             var p = new Predicate({
                 subject: 'name',
                 operator: Operators.LIKE,
                 value: 'starting*'
             });
             var s = p.serialize();
-            expect(s).to.be('(startswith(name,\'starting\'))');
+            expect(s).toBe('(startswith(name,\'starting\'))');
         });
 
-        it('Serialize LIKE with middle wildcard', function() {
+        it('Serialize LIKE with middle wildcard', () => {
             var p = new Predicate({
                 subject: 'name',
                 operator: Operators.LIKE,
                 value: 'start*end'
             });
             var s = p.serialize();
-            expect(s).to.be('(contains(name,\'start*end\'))');
+            expect(s).toBe('(contains(name,\'start*end\'))');
         });
     });
 
-    describe('Predicate concat tests', function() {
+    describe('Predicate concat tests', () => {
 
-        it('Invalid case of a single predicate', function() {
+        it('Invalid case of a single predicate', () => {
             var p = new Predicate({
                 subject: 'name',
                 operator: Operators.EQUALS,
@@ -217,12 +219,12 @@ describe('Predicate Tests', function (done) {
                 var result = Predicate.concat(Operators.AND, p);
                 fail("expected error");
             } catch( err ) {
-                expect(err).to.not.be(null);
-                expect(err.key).to.be.eql('INSUFFICIENT_PREDICATES');
+                expect(err).not.toBe(null);
+                expect(err.key).toEqual('INSUFFICIENT_PREDICATES');
             }
         });
 
-        it('Invalid case with non-logical operator', function() {
+        it('Invalid case with non-logical operator', () => {
             var p = new Predicate({
                 subject: 'name',
                 operator: Operators.EQUALS,
@@ -237,12 +239,12 @@ describe('Predicate Tests', function (done) {
                 var result = Predicate.concat(Operators.LESS_THAN, p, p2);
                 fail("expected error");
             } catch( err ) {
-                expect(err).to.not.be(null);
-                expect(err.key).to.be.eql('INVALID_LOGICAL');
+                expect(err).not.toBe(null);
+                expect(err.key).toEqual('INVALID_LOGICAL');
             }
         });
 
-        it('Concatenate two simple predicates with AND', function() {
+        it('Concatenate two simple predicates with AND', () => {
             var p = new Predicate({
                 subject: 'name',
                 operator: Operators.EQUALS,
@@ -254,12 +256,12 @@ describe('Predicate Tests', function (done) {
                 value: 5
             });
             var result = Predicate.concat(Operators.AND, p, p2);
-            expect(result.subject).to.be(p);
-            expect(result.value).to.be(p2);
-            expect(result.operator).to.be(Operators.AND);
+            expect(result.subject).toBe(p);
+            expect(result.value).toBe(p2);
+            expect(result.operator).toBe(Operators.AND);
         });
 
-        it('Concatenate more than two predicates with OR', function() {
+        it('Concatenate more than two predicates with OR', () => {
             var p = new Predicate({
                 subject: 'name',
                 operator: Operators.EQUALS,
@@ -276,17 +278,17 @@ describe('Predicate Tests', function (done) {
                 value: 'high'
             });
             var result = Predicate.concat(Operators.OR, p, p2,p3);
-            expect(result.subject).to.be(p);
-            expect(result.value).to.not.be(null);
-            expect(result.operator).to.be(Operators.OR);
+            expect(result.subject).toBe(p);
+            expect(result.value).not.toBe(null);
+            expect(result.operator).toBe(Operators.OR);
             var r = result.value;
-            expect(r instanceof Predicate).to.be(true);
-            expect(r.subject).to.be(p2);
-            expect(r.operator).to.be(Operators.OR);
-            expect(r.value).to.be(p3);
+            expect(r instanceof Predicate).toBe(true);
+            expect(r.subject).toBe(p2);
+            expect(r.operator).toBe(Operators.OR);
+            expect(r.value).toBe(p3);
         });
 
-        it('Concatenate with an array of values', function() {
+        it('Concatenate with an array of values', () => {
             var arr = [];
             for( var i = 0; i < 3; i++ ) {
                 arr.push( new Predicate({
@@ -296,46 +298,46 @@ describe('Predicate Tests', function (done) {
                 }));
             }
             var result = Predicate.concat(Operators.OR, arr);
-            expect(result.subject).to.be(arr[0]);
-            expect(result.value).to.not.be(null);
-            expect(result.operator).to.be(Operators.OR);
+            expect(result.subject).toBe(arr[0]);
+            expect(result.value).not.toBe(null);
+            expect(result.operator).toBe(Operators.OR);
             var r = result.value;
-            expect(r instanceof Predicate).to.be(true);
-            expect(r.subject).to.be(arr[1]);
-            expect(r.operator).to.be(Operators.OR);
-            expect(r.value).to.be(arr[2]);
+            expect(r instanceof Predicate).toBe(true);
+            expect(r.subject).toBe(arr[1]);
+            expect(r.operator).toBe(Operators.OR);
+            expect(r.value).toBe(arr[2]);
         });
 
     });
 
-    describe('Predicate flatten tests', function() {
+    describe('Predicate flatten tests', () => {
 
-        it('Flatten single statement', function () {
+        it('Flatten single statement', () => {
             var s = new Predicate({
                 subject: "name",
                 value: "'Bob'"
             });
             var obj = s.flatten();
-            expect(obj.length).to.be.eql(1);
-            expect(obj[0].subject).to.be.eql("name");
-            expect(obj[0].operator).to.be.eql("eq");
-            expect(obj[0].value).to.be.eql("'Bob'");
+            expect(obj.length).toEqual(1);
+            expect(obj[0].subject).toEqual("name");
+            expect(obj[0].operator).toEqual("eq");
+            expect(obj[0].value).toEqual("'Bob'");
         });
 
-        it('Flatten single statement into existing array', function () {
+        it('Flatten single statement into existing array', () => {
             var s = new Predicate({
                 subject: "name",
                 value: "'Bob'"
             });
             var r = [];
             s.flatten(r);
-            expect(r.length).to.be.eql(1);
-            expect(r[0].subject).to.be.eql("name");
-            expect(r[0].operator).to.be.eql("eq");
-            expect(r[0].value).to.be.eql("'Bob'");
+            expect(r.length).toEqual(1);
+            expect(r[0].subject).toEqual("name");
+            expect(r[0].operator).toEqual("eq");
+            expect(r[0].value).toEqual("'Bob'");
         });
 
-        it('Flatten two and statements', function () {
+        it('Flatten two and statements', () => {
             var s = new Predicate({
                 subject: new Predicate({
                     subject: "name",
@@ -351,15 +353,15 @@ describe('Predicate Tests', function (done) {
             });
 
             var obj = s.flatten();
-            expect(obj.length).to.be.eql(2);
+            expect(obj.length).toEqual(2);
             var subject = obj[0];
-            expect(subject.subject).to.be.eql("name");
-            expect(subject.operator).to.be.eql("eq");
-            expect(subject.value).to.be.eql("'Bob'");
+            expect(subject.subject).toEqual("name");
+            expect(subject.operator).toEqual("eq");
+            expect(subject.value).toEqual("'Bob'");
             var value = obj[1];
-            expect(value.subject).to.be.eql("lastname");
-            expect(value.operator).to.be.eql("eq");
-            expect(value.value).to.be.eql("'someone'");
+            expect(value.subject).toEqual("lastname");
+            expect(value.operator).toEqual("eq");
+            expect(value.value).toEqual("'someone'");
         });
     });
 });

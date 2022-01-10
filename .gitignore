@@ -1,5 +1,6 @@
 coverage
 dist
 node_modules
-/.ntvs_analysis.dat
+test/junit
+test/coverage
 .idea
