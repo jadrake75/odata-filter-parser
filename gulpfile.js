@@ -16,7 +16,6 @@
 
 var gulp = require('gulp');
 var eslint = require('gulp-eslint');
-var bump = require('gulp-bump');
 var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
 var jest = require('@jest/core');
@@ -24,7 +23,7 @@ var packageJson = require('./package.json');
 
 var DESTINATION = 'dist';
 
-async function testWithJest() {
+async function testSrc() {
     const testResults =  await jest.runCLI({json: false, config: 'jest-config.js'},['test'])
     const { results } = testResults
     const isTestFailed = !results.success;
@@ -48,12 +47,6 @@ gulp.task('copy', function() {
         .pipe(gulp.dest(DESTINATION));
 });
 
-gulp.task('bump', function(){
-    gulp.src('./*.json')
-        .pipe(bump())
-        .pipe(gulp.dest('./'));
-});
-
 gulp.task('eslint', function () {
     return gulp.src('src/**')
         .pipe(eslint({
@@ -62,7 +55,7 @@ gulp.task('eslint', function () {
         .pipe(eslint.format());
 });
 
-gulp.task('test', gulp.series(testWithJest));
+gulp.task('test', gulp.series(testSrc));
 
 
 gulp.task('default', gulp.series('eslint', 'test', 'copy', 'compress'));
