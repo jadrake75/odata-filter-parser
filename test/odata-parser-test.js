@@ -14,7 +14,6 @@
  limitations under the License.
  */
 
-var superagent = require('superagent')
 var expect = require('expect.js')
 var parser = require("../src/odata-parser").Parser;
 var Predicate = require("../src/odata-parser").Predicate;

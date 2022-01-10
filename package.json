@@ -22,13 +22,12 @@
   "dependencies": {},
   "devDependencies": {
     "expect.js": "^0.3.1",
+    "graceful-fs": "^4.0.0",
     "gulp": "^3.9.0",
     "gulp-bump": "^1.0.0",
-    "gulp-eslint": "^0.13.2",
     "gulp-concat": "^2.6.0",
+    "gulp-eslint": "^0.13.2",
     "gulp-mocha": "^2.2.0",
-    "gulp-uglify": "^1.5.1",
-    "graceful-fs": "^4.0.0",
-    "superagent": "^0.18.2"
+    "gulp-uglify": "^1.5.1"
   }
 }
