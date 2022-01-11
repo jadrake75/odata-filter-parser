@@ -28,11 +28,6 @@ This library has *no* third-party dependencies (outside of testing and building 
 ## Platform Support
 This library should work on all modern browsers that support HTML-5 EcmaScript 5 standard as well as V8 (used by NodeJS).
 
-## Build Status
-
-[![Build Status](http://drake-server.ddns.net:8080/buildStatus/icon?job=odata-filter-parser)](http://drake-server.ddns.net:8080/job/odata-filter-parser/)
-
-
 ## Building The Library
 To build the code, follow these steps.
 
@@ -73,6 +68,14 @@ a pull-request for non-bug fixes to avoid unnecessary work and effort.  All subm
 conform with the eslint standards defined in the `.eslintrc` file.
 
 ## Deployment Information
+
+Ensure a proper version is designated in the package.json that matches the commit on github release
+
+To package the file for npmjs verify the content of the package matching the expectations by running
+
+```
+npx npm-packlist
+```
 
 To deploy the module to npm use the following command (user access will be required)
 
