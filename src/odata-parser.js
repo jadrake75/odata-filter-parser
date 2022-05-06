@@ -225,12 +225,7 @@ var ODataParser = function () {
             if (match) {
                 switch (regex) {
                 case REGEX.parenthesis:
-                    if (match.length > 2) {
-                        if (match[2].indexOf(')') < match[2].indexOf('(')) {
-                            continue;
-                        }
-                        obj = parseFragment(match[2]);
-                    }
+                    return parseNested(filter);
                     break;
                 case REGEX.andor:
                     obj = new Predicate({
@@ -267,6 +262,47 @@ var ODataParser = function () {
             }
         }
         return obj;
+    }
+
+    function parseNested(filter) {
+        const expressions = {};
+        const keyRegex =  /([$][0-9]+[$])/g;
+        while (filter.indexOf('(') !== -1) {
+            let i, leftParenthesisIndex = 0;
+            let isInsideQuotes = false;
+            for (i = 0; i < filter.length; i++) {
+                if (filter[i] === '\'') {
+                    isInsideQuotes = !isInsideQuotes;
+                } else if (!isInsideQuotes && filter[i] === '(') {
+                    leftParenthesisIndex = i;
+                } else if (!isInsideQuotes && filter[i] === ')') {
+                    const key = `$${Object.keys(expressions).length}$`;
+                    const filterSubstring = filter.substring(leftParenthesisIndex + 1, i);
+                    expressions[key] = parseFragment(filterSubstring);
+
+                    const match = filterSubstring.match(keyRegex);
+                    if (match && match.length === 2) {
+                        expressions[key].subject = expressions[match[0]];
+                        expressions[key].value = expressions[match[1]];
+                    }  else if (match && match.length == 1) {
+                        if (filterSubstring.indexOf('$') === 0) {
+                            expressions[key].subject = expressions[match[0]];
+                        } else {
+                            expressions[key].value = expressions[match[0]];
+                        }
+                    }
+                    filter = `${filter.substring(0, leftParenthesisIndex)}${key}${filter.substring(i + 1)}`;
+                    break;
+                }
+            }
+            if (i === filter.length) {
+                throw {
+                    key: 'INVALID_FILTER_STRING',
+                    msg: 'The given string has uneven number of parenthesis'
+                };
+            }
+        }
+        return expressions[`$${Object.keys(expressions).length - 1}$`];
     }
 
     return {

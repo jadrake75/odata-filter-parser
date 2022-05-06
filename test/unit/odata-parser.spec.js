@@ -144,6 +144,37 @@ describe('ODataParser Tests', done => {
 
         });
 
+        it('Nested binary expressions', () => {
+            var s = "(((district eq 'all') or (district eq 'palilula')) and ((malfunctions eq 'true') or (maintenance eq 'true')))";
+            var obj = parser.parse(s);
+            var subject = obj.subject;
+            var value = obj.value;
+            var subjectNestedSubject = subject.subject;
+            var subjectNestedValue = subject.value;
+            var valueNestedSubject = value.subject;
+            var valueNestedValue = value.value;
+
+            expect(obj.operator).toEqual("and");
+            expect(subject.operator).toEqual("or");
+            expect(value.operator).toEqual("or");
+
+            expect(subjectNestedSubject.subject).toEqual("district");
+            expect(subjectNestedSubject.value).toEqual("all");
+            expect(subjectNestedSubject.operator).toEqual("eq");
+
+            expect(subjectNestedValue.subject).toEqual("district");
+            expect(subjectNestedValue.value).toEqual("palilula");
+            expect(subjectNestedValue.operator).toEqual("eq");
+
+            expect(valueNestedSubject.subject).toEqual("malfunctions");
+            expect(valueNestedSubject.value).toEqual("true");
+            expect(valueNestedSubject.operator).toEqual("eq");
+
+            expect(valueNestedValue.subject).toEqual("maintenance");
+            expect(valueNestedValue.value).toEqual("true");
+            expect(valueNestedValue.operator).toEqual("eq");
+        });
+
         it('Verify startsWith condition', () => {
             var s = "startswith(name,'Ja')";
             var obj = parser.parse(s);
