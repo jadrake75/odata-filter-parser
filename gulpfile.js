@@ -50,7 +50,7 @@ gulp.task('copy', function() {
 gulp.task('eslint', function () {
     return gulp.src('src/**')
         .pipe(eslint({
-            configFile: '.eslintrc'
+            configFile: '.eslintrc.json'
         }))
         .pipe(eslint.format());
 });

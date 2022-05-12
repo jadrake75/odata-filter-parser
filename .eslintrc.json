@@ -1,14 +1,15 @@
-//@formatter:off
 {
   "env": {
+    "es6": true,
     "browser": true,
-    "node": true,
-    "es6": false
+    "node": true
   },
+
   "globals": {
     "jQuery": false,
     "$": false
   },
+
   "rules": {
     "strict": 0,
     "no-underscore-dangle": 0,
@@ -16,7 +17,7 @@
     "indent": [2, 4],
     "brace-style": [2, "1tbs"],
     // make this one a two when closer to production
-    "no-alert": 2
+    "no-alert": 2,
+    "no-var": 2
   }
 }
-//@formatter:on
