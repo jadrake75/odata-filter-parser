@@ -10,6 +10,11 @@ Full API documentation and examples is available on the [Documentation](https://
 To include the library in your application, you can either reference the `.js` files under the `dist` folder or use the JSPM / Node 
 modular inclusion discussed on the [Documentation](https://github.com/jadrake75/odata-filter-parser/blob/master/doc/Intro.md) page.
 
+### Compatibility
+It is required to use a supported ES6 level of JavaScript (supported by all current browsers and NodeJS supported versions) with
+version 0.4.0 or higher.
+
+
 ## Including the Library with Aurelia CLI
 The new Aurelia CLI will have difficulty resolving the dependencies from the require statements and try and resolve odata-filter under src vs the distribution folder.  To resolve this, 
 use the following configuration in the dependencies section of the aurelia.json file:
