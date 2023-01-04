@@ -258,6 +258,22 @@ describe('ODataParser Tests', done => {
             expect( obj.operator).toEqual('le');
         });
 
+        it('Verify compound wrapped expressions', () => {
+            let s = "((name eq 'Drew Xiu') and (age gt 5))";
+            var obj = parser.parse(s);
+            expect(obj.operator).toBe('and');
+            let namePredicate = obj.subject;
+            let agePredicate = obj.value;
+            expect(namePredicate instanceof Predicate).toBe(true);
+            expect(agePredicate instanceof Predicate).toBe(true);
+            expect( namePredicate.subject).toEqual('name');
+            expect( namePredicate.value).toEqual('Drew Xiu');
+            expect( namePredicate.operator).toEqual('eq');
+            expect( agePredicate.subject).toEqual('age');
+            expect( agePredicate.value).toBe(5);
+            expect( agePredicate.operator).toEqual('gt');
+        });
+
         it('Mismatched paranthesis fails at start', () => {
             var s = "(((((value ge 5)))";
             try {

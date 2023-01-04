@@ -74,7 +74,19 @@ conform with the eslint standards defined in the `.eslintrc` file.
 
 ## Deployment Information
 
-Ensure a proper version is designated in the package.json that matches the commit on github release
+Ensure a proper version is designated in the package.json that matches the commit on github.
+
+Tag the release locally with
+
+```
+git tag -a <newVersion> -m "created tag <newVersion>"
+```
+
+Push tag to github
+
+```
+git push origin --tags
+```
 
 To package the file for npmjs verify the content of the package matching the expectations by running
 
