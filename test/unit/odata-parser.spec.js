@@ -199,6 +199,51 @@ describe('ODataParser Tests', done => {
             expect( obj.operator).toEqual('like');
         });
 
+        it('Verify compound expression with contains condition', () => {
+            var s = "contains(name,'Something') and (name eq 'test')";
+            var obj = parser.parse(s);
+            expect(obj.operator).toBe('and');
+            let containsPredicate = obj.subject;
+            let eqPredicate = obj.value;
+            expect(containsPredicate instanceof Predicate).toBe(true);
+            expect(eqPredicate instanceof Predicate).toBe(true);
+            expect( containsPredicate.subject).toEqual('name');
+            expect( containsPredicate.value).toEqual('*Something*');
+            expect( eqPredicate.subject).toEqual('name');
+            expect( eqPredicate.value).toEqual('test');
+            expect( eqPredicate.operator).toEqual('eq');
+        });
+
+        it('Verify compound expression with contains condition wrapped', () => {
+            var s = "(contains(name,'Something') and (name eq 'test'))";
+            var obj = parser.parse(s);
+            expect(obj.operator).toBe('and');
+            let containsPredicate = obj.subject;
+            let eqPredicate = obj.value;
+            expect(containsPredicate instanceof Predicate).toBe(true);
+            expect(eqPredicate instanceof Predicate).toBe(true);
+            expect( containsPredicate.subject).toEqual('name');
+            expect( containsPredicate.value).toEqual('*Something*');
+            expect( eqPredicate.subject).toEqual('name');
+            expect( eqPredicate.value).toEqual('test');
+            expect( eqPredicate.operator).toEqual('eq');
+        });
+
+        it('Verify compound expression with contains condition wrapped twice', () => {
+            var s = "((contains(name,'Something')) and (name eq 'test'))";
+            var obj = parser.parse(s);
+            expect(obj.operator).toBe('and');
+            let containsPredicate = obj.subject;
+            let eqPredicate = obj.value;
+            expect(containsPredicate instanceof Predicate).toBe(true);
+            expect(eqPredicate instanceof Predicate).toBe(true);
+            expect( containsPredicate.subject).toEqual('name');
+            expect( containsPredicate.value).toEqual('*Something*');
+            expect( eqPredicate.subject).toEqual('name');
+            expect( eqPredicate.value).toEqual('test');
+            expect( eqPredicate.operator).toEqual('eq');
+        });
+
         it('Verify like operations return a Predicate', () => {
             var s = "contains(name,'predName')";
             var obj = parser.parse(s);
@@ -211,7 +256,25 @@ describe('ODataParser Tests', done => {
             expect( obj.subject).toEqual('purchased');
             expect( obj.value).toEqual(new Date('2015-12-06T05:00:00.000Z'));
             expect( obj.operator).toEqual('le');
-        })
+        });
+
+        it('Mismatched paranthesis fails at start', () => {
+            var s = "(((((value ge 5)))";
+            try {
+                var obj = parser.parse(s);
+            } catch(e) {
+                expect(e.key).toBe('INVALID_FILTER_STRING');
+            }
+        });
+
+        it('Mismatched paranthesis fails at end', () => {
+            var s = "value eq ')')";
+            try {
+                var obj = parser.parse(s);
+            } catch(e) {
+                expect(e.key).toBe('INVALID_FILTER_STRING');
+            }
+        });
     });
 
 });

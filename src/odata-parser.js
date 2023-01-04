@@ -51,6 +51,12 @@ const Operators = {
     }
 };
 
+const Functions = {
+    CONTAINS: 'contains',
+    STARTSWITH: 'startswith',
+    ENDSWIDTH: 'endswith'
+};
+
 /**
  * Predicate is the basic model construct of the odata expression
  *
@@ -142,7 +148,7 @@ Predicate.prototype.serialize = function () {
         }
         retValue = '(';
         if (this.operator === Operators.LIKE) {
-            let op = 'contains';
+            let op = Functions.CONTAINS;
             const lastIndex = this.value.lastIndexOf('*');
             const index = this.value.indexOf('*');
             let v = this.value;
@@ -195,6 +201,8 @@ const ODataParser = function () {
 
     "use strict";
 
+    const KEY_REGEX = /^([$][0-9]+[$])$/g;
+
     const REGEX = {
         parenthesis: /^([(](.*)[)])$/,
         andor: /^(.*?) (or|and)+ (.*)$/,
@@ -228,10 +236,12 @@ const ODataParser = function () {
                     return parseNested(filter);
                     break;
                 case REGEX.andor:
+                    let subject = /(\$[0-9]+\$)/.test(match[1]) ? match[1] : parseFragment(match[1]);
+                    let value = /(\$[0-9]+\$)/.test(match[3]) ? match[3] : parseFragment(match[3]);
                     obj = new Predicate({
-                        subject: parseFragment(match[1]),
+                        subject: subject,
                         operator: match[2],
-                        value: parseFragment(match[3])
+                        value: value
                     });
                     break;
                 case REGEX.op:
@@ -266,40 +276,95 @@ const ODataParser = function () {
 
     function parseNested(filter) {
         const expressions = {};
-        const keyRegex =  /([$][0-9]+[$])/g;
+
+        const handleSubstitutions = (key, filterSubstring) => {
+            let subsituted = false;
+            // the expression by key is a reference another expression
+            if (!expressions[key] && filterSubstring.match(KEY_REGEX)) {
+                expressions[key] = expressions[filterSubstring];
+                subsituted = true;
+            } else {
+                handleExpressionCascade(key, 'subject');
+                handleExpressionCascade(key, 'value');
+            }
+            if (!subsituted) {
+                const match = filterSubstring.match(KEY_REGEX);
+                if (match && match.length === 2) {
+                    expressions[key].subject = expressions[match[0]];
+                    expressions[key].value = expressions[match[1]];
+                } else if (match && match.length == 1) {
+                    if (filterSubstring.indexOf('$') === 0) {
+                        expressions[key].subject = expressions[match[0]];
+                    } else {
+                        expressions[key].value = expressions[match[0]];
+                    }
+                }
+            }
+        };
+
+        /**
+         * Cascade a parameter of an expression to a matched expression
+         * @param key - the key in the cache
+         * @param param - the parameter key (subject|value)
+         */
+        const handleExpressionCascade = (key, param) => {
+            let match = (expressions[key] && typeof expressions[key][param] === 'string') ? expressions[key][param].match(KEY_REGEX) : undefined;
+            if (match && match.length == 1) {
+                expressions[key][param] = expressions[match[0]];
+            }
+        };
+
+        /**
+         * Determine if the opening parathensis belongs to a function such as
+         * "contains(" or "startswith("
+         *
+         * @param str
+         * @param i
+         * @returns {boolean}
+         */
+        const isParenthesisForFunction = (str, i) => {
+            let retVal = false;
+            Object.keys(Functions).forEach(fn => {
+                const fnLen = Functions[fn].length;
+                retVal = retVal || (i > fnLen && str.substring(i - fnLen, i) === Functions[fn]);
+            });
+            return retVal;
+        };
+
         while (filter.indexOf('(') !== -1) {
             let i, leftParenthesisIndex = 0;
             let isInsideQuotes = false;
+            let isInsideFunction = false;
             for (i = 0; i < filter.length; i++) {
                 if (filter[i] === '\'') {
                     isInsideQuotes = !isInsideQuotes;
-                } else if (!isInsideQuotes && filter[i] === '(') {
-                    leftParenthesisIndex = i;
-                } else if (!isInsideQuotes && filter[i] === ')') {
-                    const key = `$${Object.keys(expressions).length}$`;
-                    const filterSubstring = filter.substring(leftParenthesisIndex + 1, i);
-                    expressions[key] = parseFragment(filterSubstring);
-
-                    const match = filterSubstring.match(keyRegex);
-                    if (match && match.length === 2) {
-                        expressions[key].subject = expressions[match[0]];
-                        expressions[key].value = expressions[match[1]];
-                    }  else if (match && match.length == 1) {
-                        if (filterSubstring.indexOf('$') === 0) {
-                            expressions[key].subject = expressions[match[0]];
-                        } else {
-                            expressions[key].value = expressions[match[0]];
+                    continue;
+                } else if (!isInsideQuotes) {
+                    if (filter[i] === '(') {
+                        if (isParenthesisForFunction(filter, i)) {
+                            isInsideFunction = true;
+                            continue;
                         }
+                        leftParenthesisIndex = i;
+                    } else if (filter[i] === ')') {
+                        const filterSubstring = filter.substring(leftParenthesisIndex + 1, (isInsideFunction ? i + 1 : i));
+                        if (isInsideFunction) {
+                            leftParenthesisIndex++; // need to include full parenthesis
+                            isInsideFunction = false;
+                        }
+                        const key = `$${Object.keys(expressions).length}$`;
+                        expressions[key] = parseFragment(filterSubstring);
+                        handleSubstitutions(key, filterSubstring);
+                        filter = `${filter.substring(0, leftParenthesisIndex)}${key}${filter.substring(i + 1)}`;
+                        break;
                     }
-                    filter = `${filter.substring(0, leftParenthesisIndex)}${key}${filter.substring(i + 1)}`;
-                    break;
                 }
-            }
-            if (i === filter.length) {
-                throw {
-                    key: 'INVALID_FILTER_STRING',
-                    msg: 'The given string has uneven number of parenthesis'
-                };
+                if (i === filter.length - 1) {
+                    throw {
+                        key: 'INVALID_FILTER_STRING',
+                        msg: 'The given string has uneven number of parenthesis'
+                    };
+                }
             }
         }
         return expressions[`$${Object.keys(expressions).length - 1}$`];
