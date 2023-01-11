@@ -207,9 +207,9 @@ const ODataParser = function () {
         parenthesis: /^([(](.*)[)])$/,
         andor: /^(.*?) (or|and)+ (.*)$/,
         op: /(\w*) (eq|gt|lt|ge|le|ne) (datetimeoffset'(.*)'|'(.*)'|[0-9]*)/,
-        startsWith: /^startswith[(](.*),'(.*)'[)]/,
-        endsWith: /^endswith[(](.*),'(.*)'[)]/,
-        contains: /^contains[(](.*),'(.*)'[)]/
+        startsWith: /^startswith[(](.*),\s*'(.*)'[)]/,
+        endsWith: /^endswith[(](.*),\s*'(.*)'[)]/,
+        contains: /^contains[(](.*),\s*'(.*)'[)]/
     };
 
     function buildLike(match, key) {

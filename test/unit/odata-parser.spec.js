@@ -199,6 +199,22 @@ describe('ODataParser Tests', done => {
             expect( obj.operator).toEqual('like');
         });
 
+        it('Verify function with space after comma in parenthesis', () => {
+            var s = "contains(name, 'Some value')";
+            var obj = parser.parse(s);
+            expect( obj.subject).toEqual('name');
+            expect( obj.value).toEqual('*Some value*');
+            expect( obj.operator).toEqual('like');
+        });
+
+        it('Verify function with spaces after comma in parenthesis', () => {
+            var s = "contains(name,    'many   spaces')";
+            var obj = parser.parse(s);
+            expect( obj.subject).toEqual('name');
+            expect( obj.value).toEqual('*many   spaces*');
+            expect( obj.operator).toEqual('like');
+        });
+
         it('Verify compound expression with contains condition', () => {
             var s = "contains(name,'Something') and (name eq 'test')";
             var obj = parser.parse(s);
