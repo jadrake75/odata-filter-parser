@@ -215,6 +215,21 @@ describe('ODataParser Tests', done => {
             expect( obj.operator).toEqual('like');
         });
 
+        it('Verify compound expression with contains condition with spaces inside of parenthesis', () => {
+            let s  = "contains(name, 'value with spaces') and (name eq 'test')";
+            var obj = parser.parse(s);
+            expect(obj.operator).toBe('and');
+            let containsPredicate = obj.subject;
+            let eqPredicate = obj.value;
+            expect(containsPredicate instanceof Predicate).toBe(true);
+            expect(eqPredicate instanceof Predicate).toBe(true);
+            expect( containsPredicate.subject).toEqual('name');
+            expect( containsPredicate.value).toEqual('*value with spaces*');
+            expect( eqPredicate.subject).toEqual('name');
+            expect( eqPredicate.value).toEqual('test');
+            expect( eqPredicate.operator).toEqual('eq');
+        });
+
         it('Verify compound expression with contains condition', () => {
             var s = "contains(name,'Something') and (name eq 'test')";
             var obj = parser.parse(s);

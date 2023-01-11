@@ -76,7 +76,11 @@ conform with the eslint standards defined in the `.eslintrc` file.
 
 Ensure a proper version is designated in the package.json that matches the commit on github.
 
-Tag the release locally with
+Step 1. Update version in package.json
+
+Step 2. Commit changes to github
+
+Step 3. Create Tag of the release locally with
 
 ```
 git tag -a <newVersion> -m "created tag <newVersion>"
@@ -88,16 +92,17 @@ Push tag to github
 git push origin --tags
 ```
 
-To package the file for npmjs verify the content of the package matching the expectations by running
+Step 4. Pack the solution for publishing
 
 ```
-npx npm-packlist
+npm pack
 ```
 
-To deploy the module to npm use the following command (user access will be required)
+Step 5. To deploy the module to npmjs use the following command (user access will be required)
 
 ```
 npm publish
 ```
 
+Step 6.  Optionally create a release in github using the tag and attach the .tgz used to publish to npmjs
 
