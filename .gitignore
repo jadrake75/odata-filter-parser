@@ -4,3 +4,4 @@ node_modules
 test/junit
 test/coverage
 .idea
+odata-filter-parser-*.tgz
