@@ -26,6 +26,31 @@ use the following configuration in the dependencies section of the aurelia.json 
      "main": "index"
   }
   ```
+
+## Using the Library with TypeScript
+Currently no types are available for Predicate, Operators and Parser so they may need to be declared locally.  Here is the workaround to do so in your project.
+
+  * Add a directory under src called `@custom_types` if it doesn't exist
+  * Create a `odata-filter-parser.d.ts` file with the following contents in this location
+
+  ```
+  import { Predicate, Operators, Parser } from 'odata-filter-parser'
+
+  export { Predicate, Operators }
+  export default Parser
+  ```
+
+   * Modify your compile options block (in a vuejs 3.x project this is likely the `tsconfig.app.json` file) to add the following (only showing the sections modified):
+
+   ```
+   "compilerOptions": {
+      "paths": {
+          "*": ["src/@custom_types/*"]
+      }
+   },
+   "exclude": ["src/@custom_types/*"]
+   ```
+
    
 ## Dependencies
 This library has *no* third-party dependencies (outside of testing and building tools used by source).  No additional software is required.
