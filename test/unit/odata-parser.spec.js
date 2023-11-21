@@ -29,6 +29,13 @@ describe('ODataParser Tests', done => {
             expect(parser.parse('')).toBe(null);
         });
 
+        it('Is null expression', () => {
+            var obj = parser.parse('name is null')
+            expect(obj.subject).toEqual("name")
+            expect(obj.operator).toEqual("is null")
+            expect(obj.value).toBeUndefined()
+        })
+
         it('Simple binary expression test', () => {
             var s = "name eq 'test'";
             var obj = parser.parse(s);

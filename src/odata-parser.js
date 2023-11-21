@@ -207,9 +207,11 @@ const ODataParser = function () {
         parenthesis: /^([(](.*)[)])$/,
         andor: /^(.*?) (or|and)+ (.*)$/,
         op: /(\w*) (eq|gt|lt|ge|le|ne) (datetimeoffset'(.*)'|'(.*)'|[0-9]*)/,
+        isnull: /^(.*?) (is null)$/,
         startsWith: /^startswith[(](.*),\s*'(.*)'[)]/,
         endsWith: /^endswith[(](.*),\s*'(.*)'[)]/,
         contains: /^contains[(](.*),\s*'(.*)'[)]/
+
     };
 
     function buildLike(match, key) {
@@ -259,8 +261,12 @@ const ODataParser = function () {
                             obj.value = new Date(m[1]);
                         }
                     }
-
-
+                    break;
+                case REGEX.isnull:
+                    obj = new Predicate({
+                        subject: match[1],
+                        operator: match[2]
+                    })
                     break;
                 case REGEX.startsWith:
                 case REGEX.endsWith:
