@@ -70,10 +70,10 @@ The following list of OData operators are supported by the parser and predicates
 
 There are also a few functions available on Operators:
 
-####isUnary()
+#### isUnary()
 Whether the operator only involves one reference to return a boolean result.  `Operators.IS_NULL` is an example of a unary operation.
 
-####isLogical()
+#### isLogical()
 Whether the operator is used for logical "gate" operations such as `Operators.AND` and `Operators.OR`
 
 ## Predicate
@@ -94,7 +94,7 @@ For compatibility all predicates will be wrapped by `()` to ensure cleaner proce
 ```
 will result in `s` being the value `(name eq 'Jerry')`
 
-####flatten()
+#### flatten()
 The flatten function will take a Predicate and will return and array of Predicates.  If the Predicate represents a logical operator such as `Operators.OR` or
 `Operators.AND` it will use the subject and value of these predicates in a recursive fashion.
 
@@ -132,7 +132,7 @@ will result in the following output (where each object in the array is a Predica
 ## Parser
 The parser is used to convert a string value representing a OData $filter string and convert this into a valid [Predicate](#Predicate) object (structure).
 
-####parse(filter:string)
+#### parse(filter:string)
 Will parse the string and convert it to a `Predicate` object.  The object returned will be nested based on the structure of the $filter string. 
 If the filter string is null or empty, a value of `null` will be returned.  When a predicate is created from the filter string, if the subject is not another
 predicate it will be encoded as a string.  The value will be encoded either as a Predicate (for logical operations), a string, number or boolean. 
