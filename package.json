@@ -3,6 +3,7 @@
   "version": "0.5.4",
   "description": "Library for parsing and building OData filter strings",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "test": "gulp test"
   },
