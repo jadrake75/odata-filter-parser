@@ -28,6 +28,9 @@ export interface Operators {
     LIKE: string;
     IS_NULL: string;
     NOT_EQUAL: string;
+    IN: string;
+    HAS: string;
+    NOT: string;
 
     isUnary(op: string): boolean;
     isLogical(op: string): boolean;

@@ -25,6 +25,9 @@ const Operators = {
     LIKE: 'like',
     IS_NULL: 'is null',
     NOT_EQUAL: 'ne',
+    IN: 'in',
+    HAS: 'has',
+    NOT: 'not',
 
     /**
      * Whether a defined operation is unary or binary.  Will return true
@@ -35,7 +38,7 @@ const Operators = {
      */
     isUnary: function (op) {
         let value = false;
-        if (op === Operators.IS_NULL) {
+        if (op === Operators.IS_NULL || op === Operators.NOT) {
             value = true;
         }
         return value;
@@ -47,14 +50,15 @@ const Operators = {
      * @return {Boolean} whether the operation is a logical operation.
      */
     isLogical: function (op) {
-        return (op === Operators.AND || op === Operators.OR);
+        return (op === Operators.AND || op === Operators.OR || op === Operators.NOT);
     }
 };
 
 const Functions = {
     CONTAINS: 'contains',
     STARTSWITH: 'startswith',
-    ENDSWIDTH: 'endswith'
+    ENDSWITH: 'endswith',
+    ENDSWIDTH: 'endswith' // Retained for backward compatibility
 };
 
 /**
@@ -139,15 +143,25 @@ Predicate.prototype.serialize = function () {
                 msg: 'The subject is required and is not specified.'
             };
         }
-        if (Operators.isLogical(this.operator) && (!(this.subject instanceof Predicate ||
-            this.value instanceof Predicate) || (this.subject instanceof Predicate && this.value === undefined))) {
-            throw {
-                key: 'INVALID_LOGICAL',
-                msg: 'The predicate does not represent a valid logical expression.'
-            };
+        if (Operators.isLogical(this.operator)) {
+            if (this.operator === Operators.NOT) {
+                if (this.subject === undefined || this.subject === null) {
+                    throw {
+                        key: 'INVALID_LOGICAL',
+                        msg: 'The predicate does not represent a valid logical expression.'
+                    };
+                }
+            } else if (!(this.subject instanceof Predicate || this.value instanceof Predicate) || (this.subject instanceof Predicate && this.value === undefined)) {
+                throw {
+                    key: 'INVALID_LOGICAL',
+                    msg: 'The predicate does not represent a valid logical expression.'
+                };
+            }
         }
         retValue = '(';
-        if (this.operator === Operators.LIKE) {
+        if (this.operator === Operators.NOT) {
+            retValue += 'not ' + ((this.subject instanceof Predicate) ? this.subject.serialize() : this.subject);
+        } else if (this.operator === Operators.LIKE) {
             let op = Functions.CONTAINS;
             const lastIndex = this.value.lastIndexOf('*');
             const index = this.value.indexOf('*');
@@ -173,21 +187,40 @@ Predicate.prototype.serialize = function () {
                     };
                 }
                 retValue += ' ';
-                const val = typeof this.value;
-                if (val === 'string') {
-                    retValue += '\'' + this.value + '\'';
-                } else if (val === 'number' || val === 'boolean') {
-                    retValue += this.value;
-                } else if (this.value instanceof Predicate) {
-                    retValue += this.value.serialize();
-                } else if (this.value instanceof Date) {
-                    retValue += 'datetimeoffset\'' + this.value.toISOString() + '\'';
+                if (this.operator === Operators.IN) {
+                    if (Array.isArray(this.value)) {
+                        const formattedItems = this.value.map(v => {
+                            if (typeof v === 'string') return '\'' + v + '\'';
+                            if (v instanceof Date) return 'datetimeoffset\'' + v.toISOString() + '\'';
+                            return v;
+                        }).join(', ');
+                        retValue += '(' + formattedItems + ')';
+                    } else if (typeof this.value === 'string' && this.value.startsWith('(') && this.value.endsWith(')')) {
+                        retValue += this.value;
+                    } else {
+                        retValue += '(' + this.value + ')';
+                    }
                 } else {
-                    throw {
-                        key: 'UNKNOWN_TYPE',
-                        msg: 'Unsupported value type: ' + (typeof this.value),
-                        source: this.value
-                    };
+                    const val = typeof this.value;
+                    if (val === 'string') {
+                        if (this.operator === Operators.HAS && (this.value.includes('\'') || this.value.includes('.'))) {
+                            retValue += this.value;
+                        } else {
+                            retValue += '\'' + this.value + '\'';
+                        }
+                    } else if (val === 'number' || val === 'boolean') {
+                        retValue += this.value;
+                    } else if (this.value instanceof Predicate) {
+                        retValue += this.value.serialize();
+                    } else if (this.value instanceof Date) {
+                        retValue += 'datetimeoffset\'' + this.value.toISOString() + '\'';
+                    } else {
+                        throw {
+                            key: 'UNKNOWN_TYPE',
+                            msg: 'Unsupported value type: ' + (typeof this.value),
+                            source: this.value
+                        };
+                    }
                 }
             }
         }
@@ -206,7 +239,9 @@ const ODataParser = function () {
     const REGEX = {
         parenthesis: /^([(](.*)[)])$/,
         andor: /^(.*?) (or|and)+ (.*)$/,
-        op: /(\w*) (eq|gt|lt|ge|le|ne) (datetimeoffset'(.*)'|'(.*)'|[0-9]*)/,
+        notOp: /^not\s+(.*)$/i,
+        inOp: /^(\w+)\s+in\s+([(].*[)])$/i,
+        op: /(\w*) (eq|gt|lt|ge|le|ne|has) (datetimeoffset'(.*)'|'(.*)'|[0-9a-zA-Z\.\']*)/,
         isnull: /^(.*?) (is null)$/,
         startsWith: /^startswith[(](.*),\s*'(.*)'[)]/,
         endsWith: /^endswith[(](.*),\s*'(.*)'[)]/,
@@ -246,6 +281,38 @@ const ODataParser = function () {
                         value: value
                     });
                     break;
+                case REGEX.notOp: {
+                    const innerStr = match[1].trim();
+                    let notSubject = /(\$[0-9]+\$)/.test(innerStr) ? innerStr : parseFragment(innerStr);
+                    obj = new Predicate({
+                        subject: notSubject,
+                        operator: Operators.NOT
+                    });
+                    break;
+                }
+                case REGEX.inOp: {
+                    const inSubject = match[1];
+                    const rawList = match[2].slice(1, -1).trim();
+                    const items = (rawList === '') ? [] : rawList.split(/,\s*/).map(item => {
+                        const trimmedItem = item.trim();
+                        const quoted = trimmedItem.match(/^'(.*)'$/);
+                        const m = trimmedItem.match(/^datetimeoffset'(.*)'$/);
+                        if (quoted && quoted.length > 1) {
+                            return quoted[1];
+                        } else if (m && m.length > 1) {
+                            return new Date(m[1]);
+                        } else if (!isNaN(trimmedItem) && trimmedItem !== '') {
+                            return +trimmedItem;
+                        }
+                        return trimmedItem;
+                    });
+                    obj = new Predicate({
+                        subject: inSubject,
+                        operator: Operators.IN,
+                        value: items
+                    });
+                    break;
+                }
                 case REGEX.op:
                     obj = new Predicate({
                         subject: match[1],
@@ -334,6 +401,12 @@ const ODataParser = function () {
                 const fnLen = Functions[fn].length;
                 retVal = retVal || (i > fnLen && str.substring(i - fnLen, i) === Functions[fn]);
             });
+            if (!retVal && i >= 2) {
+                const prefix = str.substring(0, i).trimEnd();
+                if (prefix.endsWith(' in') || prefix.endsWith('\tin')) {
+                    retVal = true;
+                }
+            }
             return retVal;
         };
 

@@ -47,6 +47,37 @@ const combined = Predicate.concat(Operators.AND, p1, p2);
 console.log(combined.serialize()); // ((age gt 21) and (status eq 'active'))
 ```
 
+## Operators Reference
+
+The library provides predefined `Operators` constants for constructing and parsing OData filter expressions:
+
+| Constant Name | Keyword | Type | Description |
+| :--- | :--- | :--- | :--- |
+| `Operators.EQUALS` | `'eq'` | Comparison | Evaluates whether a property is equal to a specified value. |
+| `Operators.NOT_EQUAL` | `'ne'` | Comparison | Evaluates whether a property is not equal to a specified value. |
+| `Operators.GREATER_THAN` | `'gt'` | Comparison | Evaluates whether a property value is strictly greater than a specified value. |
+| `Operators.GREATER_THAN_EQUAL` | `'ge'` | Comparison | Evaluates whether a property value is greater than or equal to a specified value. |
+| `Operators.LESS_THAN` | `'lt'` | Comparison | Evaluates whether a property value is strictly less than a specified value. |
+| `Operators.LESS_THAN_EQUAL` | `'le'` | Comparison | Evaluates whether a property value is less than or equal to a specified value. |
+| `Operators.AND` | `'and'` | Logical | Logical binary conjunction that evaluates to true if both logical expressions are true. |
+| `Operators.OR` | `'or'` | Logical | Logical binary disjunction that evaluates to true if either logical expression is true. |
+| `Operators.NOT` | `'not'` | Logical | Logical unary prefix operator that negates a logical expression. |
+| `Operators.IN` | `'in'` | Membership | Determines whether a value is a member of a discrete set of values. |
+| `Operators.HAS` | `'has'` | Flags / Bitmask | Determines whether a property contains a specific enumeration flag or bitwise mask. |
+| `Operators.LIKE` | `'like'` | String Extension | Wildcard string matching operator that translates to standard OData string functions (`contains`, `startswith`, `endswith`). |
+| `Operators.IS_NULL` | `'is null'` | Extension | Unary postfix operator that determines whether a property is null. |
+
+## Functions Reference
+
+The library provides `Functions` constants for string matching functions supported in OData filter expressions:
+
+| Constant Name | Keyword | Description |
+| :--- | :--- | :--- |
+| `Functions.CONTAINS` | `'contains'` | Checks if a string property contains a specified substring. |
+| `Functions.STARTSWITH` | `'startswith'` | Checks if a string property starts with a specified prefix substring. |
+| `Functions.ENDSWITH` | `'endswith'` | Checks if a string property ends with a specified suffix substring. |
+| `Functions.ENDSWIDTH` | `'endswith'` | Legacy constant retained for backward compatibility (deprecated). |
+
 ## Including the Library with Aurelia CLI
 If using Aurelia CLI, configure the dependency in `aurelia.json`:
 

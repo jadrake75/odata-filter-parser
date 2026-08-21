@@ -36,6 +36,83 @@ describe('ODataParser Tests', done => {
             expect(obj.value).toBeUndefined()
         })
 
+        it('IN operator parsing and serialization test', () => {
+            var s = "City in ('Redmond', 'London')";
+            var obj = parser.parse(s);
+            expect(obj.subject).toEqual("City");
+            expect(obj.operator).toEqual("in");
+            expect(obj.value).toEqual(["Redmond", "London"]);
+            expect(obj.serialize()).toEqual("(City in ('Redmond', 'London'))");
+        });
+
+        it('IN operator with numeric list', () => {
+            var s = "Id in (1, 2, 3)";
+            var obj = parser.parse(s);
+            expect(obj.subject).toEqual("Id");
+            expect(obj.operator).toEqual("in");
+            expect(obj.value).toEqual([1, 2, 3]);
+            expect(obj.serialize()).toEqual("(Id in (1, 2, 3))");
+        });
+
+        it('IN operator with single string item', () => {
+            var s = "Category in ('Books')";
+            var obj = parser.parse(s);
+            expect(obj.subject).toEqual("Category");
+            expect(obj.operator).toEqual("in");
+            expect(obj.value).toEqual(["Books"]);
+            expect(obj.serialize()).toEqual("(Category in ('Books'))");
+        });
+
+        it('IN operator combined with AND expression', () => {
+            var s = "((City in ('Redmond', 'Seattle')) and (Status eq 'Active'))";
+            var obj = parser.parse(s);
+            expect(obj.operator).toEqual("and");
+            expect(obj.subject.operator).toEqual("in");
+            expect(obj.subject.value).toEqual(["Redmond", "Seattle"]);
+            expect(obj.value.operator).toEqual("eq");
+            expect(obj.value.value).toEqual("Active");
+            expect(obj.serialize()).toEqual("((City in ('Redmond', 'Seattle')) and (Status eq 'Active'))");
+        });
+
+        it('HAS operator parsing and serialization test', () => {
+            var s = "Style has Sales.Pattern'Red'";
+            var obj = parser.parse(s);
+            expect(obj.subject).toEqual("Style");
+            expect(obj.operator).toEqual("has");
+            expect(obj.value).toEqual("Sales.Pattern'Red'");
+            expect(obj.serialize()).toEqual("(Style has Sales.Pattern'Red')");
+        });
+
+        it('HAS operator with numeric flag', () => {
+            var s = "Flags has 4";
+            var obj = parser.parse(s);
+            expect(obj.subject).toEqual("Flags");
+            expect(obj.operator).toEqual("has");
+            expect(obj.value).toEqual(4);
+            expect(obj.serialize()).toEqual("(Flags has 4)");
+        });
+
+        it('HAS operator combined with OR expression', () => {
+            var s = "((Flags has 8) or (Status eq 'Pending'))";
+            var obj = parser.parse(s);
+            expect(obj.operator).toEqual("or");
+            expect(obj.subject.operator).toEqual("has");
+            expect(obj.subject.value).toEqual(8);
+            expect(obj.value.operator).toEqual("eq");
+            expect(obj.value.value).toEqual("Pending");
+            expect(obj.serialize()).toEqual("((Flags has 8) or (Status eq 'Pending'))");
+        });
+
+        it('NOT operator parsing and serialization test', () => {
+            var s = "not (name eq 'John')";
+            var obj = parser.parse(s);
+            expect(obj.operator).toEqual("not");
+            expect(obj.subject.subject).toEqual("name");
+            expect(obj.subject.operator).toEqual("eq");
+            expect(obj.subject.value).toEqual("John");
+            expect(obj.serialize()).toEqual("(not (name eq 'John'))");
+        });
+
         it('Simple binary expression test', () => {
             var s = "name eq 'test'";
             var obj = parser.parse(s);

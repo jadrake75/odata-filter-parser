@@ -47,5 +47,13 @@ describe('Operator Tests', done => {
             var s = "and";
             expect(operators.isUnary(s)).toBe(false);
         });
+
+        it('Checks IN, HAS, and NOT constants', () => {
+            expect(operators.IN).toEqual('in');
+            expect(operators.HAS).toEqual('has');
+            expect(operators.NOT).toEqual('not');
+            expect(operators.isLogical('not')).toBe(true);
+            expect(operators.isUnary('not')).toBe(true);
+        });
     });
 });

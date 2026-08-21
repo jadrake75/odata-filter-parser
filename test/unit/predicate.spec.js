@@ -39,6 +39,36 @@ describe('Predicate Tests', done => {
             expect(p.serialize()).toEqual("(name eq 'Serena')");
         });
 
+        it('Serialize IN operator with numeric array', () => {
+            var p = new Predicate({
+                subject: 'Age',
+                operator: Operators.IN,
+                value: [18, 21, 65]
+            });
+            expect(p.serialize()).toEqual("(Age in (18, 21, 65))");
+        });
+
+        it('Serialize HAS operator with numeric value', () => {
+            var p = new Predicate({
+                subject: 'Permissions',
+                operator: Operators.HAS,
+                value: 16
+            });
+            expect(p.serialize()).toEqual("(Permissions has 16)");
+        });
+
+        it('Serialize NOT operator with nested predicate', () => {
+            var p = new Predicate({
+                operator: Operators.NOT,
+                subject: new Predicate({
+                    subject: 'Status',
+                    operator: Operators.EQUALS,
+                    value: 'Archived'
+                })
+            });
+            expect(p.serialize()).toEqual("(not (Status eq 'Archived'))");
+        });
+
         it('Serialize a simple logical set of objects', () => {
             var p = new Predicate({
                 subject: new Predicate({
