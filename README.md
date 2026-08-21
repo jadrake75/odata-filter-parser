@@ -1,133 +1,124 @@
 # odata-filter-parser
 
-Library for parsing and building and parsing OData filter strings.  Only compatible with a subset of functions defined in OData specification
-
-* Supports OData specification V2 through V4 (partially)
+Library for building and parsing OData filter strings. Supports a subset of functions defined in the OData specification V2 through V4.
 
 ## Using the Library
-Full API documentation and examples is available on the [Documentation](https://github.com/jadrake75/odata-filter-parser/blob/master/doc/Intro.md) page.
 
-To include the library in your application, you can either reference the `.js` files under the `dist` folder or use the JSPM / Node 
-modular inclusion discussed on the [Documentation](https://github.com/jadrake75/odata-filter-parser/blob/master/doc/Intro.md) page.
+Full API documentation and examples are available on the [Documentation](https://github.com/jadrake75/odata-filter-parser/blob/master/doc/Intro.md) page.
 
 ### Compatibility
-It is required to use a supported ES6 level of JavaScript (supported by all current browsers and NodeJS supported versions) with
-version 0.4.0 or higher.
+Supports modern Node.js environments and browsers.
 
+### Including the Library
 
-## Including the Library with Aurelia CLI
-The new Aurelia CLI will have difficulty resolving the dependencies from the require statements and try and resolve odata-filter under src vs the distribution folder.  To resolve this, 
-use the following configuration in the dependencies section of the aurelia.json file:
-   
-  ```
-  {
-     "name": "odata-filter-parser",
-     "path": "../node_modules/odata-filter-parser",
-     "main": "index"
-  }
-  ```
+#### CommonJS
+```javascript
+const { Parser, Predicate, Operators } = require('odata-filter-parser');
+
+const predicate = Parser.parse("name eq 'John'");
+console.log(predicate.serialize()); // (name eq 'John')
+```
+
+#### ES Modules / TypeScript
+```typescript
+import { Parser, Predicate, Operators } from 'odata-filter-parser';
+
+const predicate = Parser.parse("name eq 'John'");
+console.log(predicate?.serialize()); // (name eq 'John')
+```
 
 ## Using the Library with TypeScript
-Currently no types are available for Predicate, Operators and Parser so they may need to be declared locally.  Here is the workaround to do so in your project.
 
-  * Add a directory under src called `@custom_types` if it doesn't exist
-  * Create a `odata-filter-parser.d.ts` file with the following contents in this location
+`odata-filter-parser` includes built-in TypeScript type definitions (`index.d.ts`) exported out of the box. No manual type declarations or `@custom_types` workarounds are needed.
 
-  ```
-  import { Predicate, Operators, Parser } from 'odata-filter-parser'
+Simply import `Parser`, `Predicate`, and `Operators` directly in your TypeScript project:
 
-  export { Predicate, Operators }
-  export default Parser
-  ```
+```typescript
+import { Parser, Predicate, Operators } from 'odata-filter-parser';
 
-   * Modify your compile options block (in a vuejs 3.x project this is likely the `tsconfig.app.json` file) to add the following (only showing the sections modified):
+// Parse an OData filter string
+const predicate: Predicate | null = Parser.parse("date ge datetimeoffset'2023-01-01T00:00:00Z'");
 
-   ```
-   "compilerOptions": {
-      "paths": {
-          "*": ["src/@custom_types/*"]
-      }
-   },
-   "exclude": ["src/@custom_types/*"]
-   ```
+// Construct predicates programmatically
+const p1 = new Predicate({ subject: 'age', operator: Operators.GREATER_THAN, value: 21 });
+const p2 = new Predicate({ subject: 'status', operator: Operators.EQUALS, value: 'active' });
+const combined = Predicate.concat(Operators.AND, p1, p2);
 
-   
+console.log(combined.serialize()); // ((age gt 21) and (status eq 'active'))
+```
+
+## Including the Library with Aurelia CLI
+If using Aurelia CLI, configure the dependency in `aurelia.json`:
+
+```json
+{
+   "name": "odata-filter-parser",
+   "path": "../node_modules/odata-filter-parser",
+   "main": "index"
+}
+```
+
 ## Dependencies
-This library has *no* third-party dependencies (outside of testing and building tools used by source).  No additional software is required.
+
+### Runtime
+This library has **zero runtime dependencies** (the `dependencies` section in `package.json` is empty), ensuring zero transitive dependency conflicts and a lightweight bundle.
+
+### Development Tooling
+All build and testing utilities are scoped strictly to `devDependencies`:
+- **tsup**: Bundler (powered by `esbuild`)
+- **Vitest**: Test runner
+- **TypeScript**: Type definitions and compilation support
+- **ESLint**: Code quality and linting rules
+
+None of these development tools are required or installed when consuming `odata-filter-parser` in your application.
 
 ## Platform Support
-This library should work on all modern browsers that support HTML-5 EcmaScript 5 standard as well as V8 (used by NodeJS).
+Works on all modern browsers and Node.js runtimes.
 
 ## Building The Library
-To build the code, follow these steps.
+The project uses `tsup` (powered by `esbuild`) for fast zero-config bundling.
 
-  * Ensure that [NodeJS](http://nodejs.org) is installed.  This provides the platform on which the build tooling is run.
-  * From the project folder, executue the following command:
-  
-  ```
-  npm install
-  ```
-  * Ensure that [Gulp](http://gulpjs.com) is installed.  If you need to install it, use the following command (however 
-  running `npm install` above should have installed a local copy):
-  
-  ```
-  npm install -g gulp
-  ```
-  * To build the code, you can not run:
-  
-  ```
-  gulp
-  ```
-  * You will find the built code under the `dist` folder.
-  * See `gulpfile.js` for other tasks related to the generating of the library.
+To build the unminified (`dist/odata-parser.js`) and minified (`dist/odata-parser-min.js`) library bundles:
+
+```bash
+npm run build
+```
 
 ## Running Tests
 
-To execute the tests with jest simply run
+Tests are powered by [Vitest](https://vitest.dev/).
 
-```
+To run all unit tests:
+```bash
 npm test
 ```
 
-This will generate coverage information automatically.
+To run tests in watch mode during development:
+```bash
+npm run test:watch
+```
 
+## Linting
+
+To run ESLint across the codebase:
+```bash
+npm run eslint
+```
 
 ## Submission Guidelines
-Pull-Requests will be used for accepting bug fixes or feature requests, however please contact the owner prior to proposing
-a pull-request for non-bug fixes to avoid unnecessary work and effort.  All submissions should provide test coverage and
-conform with the eslint standards defined in the `.eslintrc` file.
+Pull requests are welcome for bug fixes or feature requests. Please contact the owner prior to proposing a pull request for major non-bug changes. All submissions should provide test coverage and pass ESLint checks (`npm run eslint`).
 
 ## Deployment Information
 
-Ensure a proper version is designated in the package.json that matches the commit on github.
-
-Step 1. Update version in package.json
-
-Step 2. Commit changes to github
-
-Step 3. Create Tag of the release locally with
-
-```
-git tag -a <newVersion> -m "created tag <newVersion>"
-```
-
-Push tag to github
-
-```
-git push origin --tags
-```
-
-Step 4. Pack the solution for publishing
-
-```
-npm pack
-```
-
-Step 5. To deploy the module to npmjs use the following command (user access will be required)
-
-```
-npm publish
-```
-
-Step 6.  Optionally create a release in github using the tag and attach the .tgz used to publish to npmjs
-
+1. Update version in `package.json` matching the release tag.
+2. Commit changes.
+3. Create release tag:
+   ```bash
+   git tag -a <newVersion> -m "created tag <newVersion>"
+   git push origin --tags
+   ```
+4. Pack and publish:
+   ```bash
+   npm pack
+   npm publish
+   ```
