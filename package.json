@@ -1,6 +1,6 @@
 {
-  "name": "@jadrake75/odata-filter-parser",
-  "version": "0.6.4",
+  "name": "odata-filter-parser",
+  "version": "0.6.5",
   "description": "Library for parsing and building OData filter strings",
   "main": "index.js",
   "types": "index.d.ts",
@@ -11,7 +11,7 @@
     "eslint": "eslint ."
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "repository": {
     "type": "git",
