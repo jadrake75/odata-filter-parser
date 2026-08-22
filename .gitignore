@@ -5,3 +5,4 @@ test/junit
 test/coverage
 .idea
 odata-filter-parser-*.tgz
+*.tgz
